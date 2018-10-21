@@ -14,7 +14,6 @@ endif
 
 " Be iMproved
 set nocompatible
-set shiftwidth=4    " Shift >> << by 4 spaces
 
 "=====================================================
 " Vundle settings
@@ -51,14 +50,15 @@ colorscheme Monokai         " Use syntax highlighting color scheme
 let python_highlight_all=1  " Python syntax highlighting
 
 " Screen
-set number          " Show line numbers
-set ruler           " Show bottom part cursor position (ruler)
-set ttyfast         " Terminal acceleration
-set lazyredraw      " Don't refresh screen when doing macros
-set backspace=indent,eol,start
-set scrolloff=10    " Scroll earlier by 10 lines instead of screen edge
-set wildmenu        " Visual autocomplete for command menu
-set clipboard=unnamedplus " Use system clipboard
+set number                      " Show line numbers
+set ruler                       " Show bottom part cursor position (ruler)
+set ttyfast                     " Terminal acceleration
+set lazyredraw                  " Don't refresh screen when doing macros
+set backspace=indent,eol,start  " Make sure BS can delete indent, EOL and lines
+set scrolloff=10                " Scroll earlier by 10 lines instead of screen edge
+set wildmenu                    " Visual autocomplete for command menu
+set clipboard=unnamedplus       " Use system clipboard
+set signcolumn=yes              " Always show sign column (syntastic)
 
 " Tabs
 set ts=4            " Tabs have 4 spaces
@@ -88,8 +88,8 @@ cmap w!! %!sudo tee > /dev/null %
 set nocursorline    " Show no line by default - only in active win
 augroup CursorLineOnlyInActiveWindow
   autocmd!
-  au VimEnter,WinEnter * setlocal cursorline
-  au WinLeave * setlocal nocursorline
+  au VimEnter,BufEnter * setlocal cursorline
+  au BufLeave * setlocal nocursorline
   au BufWinLeave * nested :lclose
 augroup END
 
@@ -127,6 +127,7 @@ let g:syntastic_auto_loc_list=0
 let g:syntastic_check_on_open=1
 let g:syntastic_check_on_wq=0
 "let g:syntastic_aggregate_errors=1          " Display checker-name for that error-message
+let g:syntastic_enable_highlighting=0       " Disable highlighting to increase scroll speed
 
 let g:syntastic_python_checkers=['flake8']
 let g:syntastic_python_python_exec='python3'
@@ -182,9 +183,20 @@ nnoremap <silent> <S-z><S-z> :update<BAR>qa<CR>
 nnoremap <silent> <S-z><S-q> :qa<CR>
 
 " Update time stamps etc. before saving
+function! PythonFileUpdater()
+  exec 'norm mz'
+  retab " Replace tabs with spaces
+  try
+    exec '1,20 s/__updated__\s*=\s*''\S*''/__updated__ = '''.strftime('%Y-%m-%d').'''/i'
+  catch
+    silent! exec '/__updated__/s/__updated__\s*=\s*''\S*''/__updated__ = '''.strftime('%Y-%m-%d').'''/i'
+  finally
+    exec 'norm `z'
+  endtry
+endfunction
 augroup AutomaticFileUpdaters
   autocmd!
-  au BufWritePre * if &ft == 'python' | exec 'norm mz' | exec '1,20 s#\(__updated__\s*=\s*''\)\S*\(''\)#\1'.strftime('%Y-%m-%d').'\2#i' | exec 'norm `z' | endif
+  au BufWritePre * if &ft == 'python' | call PythonFileUpdater() | endif
 augroup END
 
 "=====================================================
@@ -200,9 +212,7 @@ nmap <F4> :YcmCompleter GoToReferences<CR>
 "=====================================================
 
 let g:ctrlp_map='<C-p>'
-let g:ctrlp_cmd='CtrlPMRU'
-
-nnoremap <silent> <C-b> :CtrlPBuffer<CR>
+let g:ctrlp_cmd='CtrlPBuffer'
 
 "=====================================================
 " NERDTree settings
@@ -214,8 +224,8 @@ let NERDTreeIgnore=['\.pyc$', '\.pyo$', '__pycache__$']     " Ignore files in NE
 
 " NERDTree key with support for local window cursor highlighting
 " NERDTree is very ping-pongy related to window switching so we just disable them
-nnoremap <silent> <C-n> :setlocal nocursorline<BAR>set ei=WinEnter,WinLeave<BAR>try<BAR>NERDTreeToggle<BAR>finally<BAR>set ei=<BAR>endtry<BAR>setlocal cursorline<CR>
-nnoremap <silent> <C-m> :setlocal nocursorline<BAR>set ei=WinEnter,WinLeave<BAR>try<BAR>NERDTreeFocus<BAR>finally<BAR>set ei=<BAR>endtry<BAR>setlocal cursorline<CR>
+nnoremap <silent> <C-n> :setlocal nocursorline<BAR>set ei=BufEnter,BufLeave<BAR>try<BAR>NERDTreeToggle<BAR>finally<BAR>set ei=<BAR>endtry<BAR>setlocal cursorline<CR>
+nnoremap <silent> <C-m> :setlocal nocursorline<BAR>set ei=BufEnter,BufLeave<BAR>try<BAR>NERDTreeFocus<BAR>finally<BAR>set ei=<BAR>endtry<BAR>setlocal cursorline<CR>
 
 " Close NERDTree before saving session
 au VimLeavePre * if exists('g:NERDTree') && g:NERDTree.IsOpen() | NERDTreeToggle | endif
