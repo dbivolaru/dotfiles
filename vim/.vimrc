@@ -27,11 +27,15 @@ Plugin 'VundleVim/Vundle.vim'
 " Navigation
 Plugin 'kien/ctrlp.vim'
 
+" Syntax highlighting
+Plugin 'w0rp/ale'
+
 " Language support
 Plugin 'Valloric/YouCompleteMe'
 
-" Colors
+" Colors and indentation
 Plugin 'flazz/vim-colorschemes'
+Plugin 'Yggdroot/indentLine'
 
 " Session management
 Plugin 'xolox/vim-misc'
@@ -59,6 +63,7 @@ set scrolloff=10                " Scroll earlier by 10 lines instead of screen e
 set wildmenu                    " Visual autocomplete for command menu
 set clipboard=unnamedplus       " Use system clipboard
 set signcolumn=yes              " Always show sign column (syntastic)
+set nosol                       " Don't change cursor column when scrolling
 
 " Tabs
 set ts=4            " Tabs have 4 spaces
@@ -90,7 +95,12 @@ augroup CursorLineOnlyInActiveWindow
   autocmd!
   au VimEnter,BufEnter * setlocal cursorline
   au BufLeave * setlocal nocursorline
-  au BufWinLeave * nested :lclose
+  "au BufWinLeave * nested :lclose
+augroup END
+
+augroup AutoResizeWindows
+  autocmd!
+  au VimResized * wincmd =
 augroup END
 
 "=====================================================
@@ -115,40 +125,46 @@ set laststatus=2    " Always show bottom powerline
 set t_Co=256
 
 "=====================================================
-" syntastic settings
+" syntastic settings (removed with dnf; also see ale)
 "=====================================================
 
-set statusline+=%#warningmsg#
-set statusline+=%{SyntasticStatuslineFlag()}
-set statusline+=%*
+"set statusline+=%#warningmsg#
+"set statusline+=%{SyntasticStatuslineFlag()}
+"set statusline+=%*
 
-let g:syntastic_always_populate_loc_list=1
-let g:syntastic_auto_loc_list=0
-let g:syntastic_check_on_open=1
-let g:syntastic_check_on_wq=0
-"let g:syntastic_aggregate_errors=1          " Display checker-name for that error-message
-let g:syntastic_enable_highlighting=0       " Disable highlighting to increase scroll speed
+"let g:syntastic_always_populate_loc_list=1
+"let g:syntastic_auto_loc_list=0
+"let g:syntastic_check_on_open=1
+"let g:syntastic_check_on_wq=0
+""let g:syntastic_aggregate_errors=1          " Display checker-name for that error-message
+"let g:syntastic_enable_highlighting=0       " Disable highlighting to increase scroll speed
 
-let g:syntastic_python_checkers=['flake8']
-let g:syntastic_python_python_exec='python3'
+"let g:syntastic_python_checkers=['flake8']
+"let g:syntastic_python_python_exec='python3'
 
 " Toggle checking if it's too slow
-nnoremap <F10> :SyntasticToggleMode<CR>
+"nnoremap <F10> :SyntasticToggleMode<CR>
 
 " Check file explicitly
-nnoremap <silent> <F11> :SyntasticCheck<CR>
+"nnoremap <silent> <F11> :SyntasticCheck<CR>
 
 " Toggle Errors window with keyboard
-function! SyntasticToggleErrors()
-  :SyntasticSetLoclist
-  if empty(filter(tabpagebuflist(), 'getbufvar(v:val, "&buftype") is# "quickfix"'))
-    lclose
-    lopen
-  else
-    lclose
-  endif
-endfunction
-nnoremap <silent> <F12> <Esc>:<C-u>call SyntasticToggleErrors()<CR>
+"function! SyntasticToggleErrors()
+"  :SyntasticSetLoclist
+"  if empty(filter(tabpagebuflist(), 'getbufvar(v:val, "&buftype") is# "quickfix"'))
+"    lclose
+"    lopen
+"  else
+"    lclose
+"  endif
+"endfunction
+"nnoremap <silent> <F12> <Esc>:<C-u>call SyntasticToggleErrors()<CR>
+
+"=====================================================
+" ale syntax checking
+"=====================================================
+
+let g:ale_sign_column_always = 1
 
 "=====================================================
 " Other keyboard shortcuts
@@ -203,6 +219,8 @@ augroup END
 " YouCompleteMe settings
 "=====================================================
 
+set completeopt-=preview " Do not show any preview window in the bottom
+
 nmap <F2> :YcmCompleter GetDoc<CR>
 nmap <F3> :YcmCompleter GoToDefinition<CR>
 nmap <F4> :YcmCompleter GoToReferences<CR>
@@ -228,7 +246,7 @@ nnoremap <silent> <C-n> :setlocal nocursorline<BAR>set ei=BufEnter,BufLeave<BAR>
 nnoremap <silent> <C-m> :setlocal nocursorline<BAR>set ei=BufEnter,BufLeave<BAR>try<BAR>NERDTreeFocus<BAR>finally<BAR>set ei=<BAR>endtry<BAR>setlocal cursorline<CR>
 
 " Close NERDTree before saving session
-au VimLeavePre * if exists('g:NERDTree') && g:NERDTree.IsOpen() | NERDTreeToggle | endif
+au VimLeavePre * if exists('g:NERDTree') && g:NERDTree.IsOpen() | NERDTreeToggle | endif | lclose | cclose
 
 "=====================================================
 " vim-session settings
