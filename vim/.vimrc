@@ -23,6 +23,10 @@ set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
 
 Plugin 'VundleVim/Vundle.vim'
+Plugin 'vim-airline/vim-airline'
+Plugin 'vim-airline/vim-airline-themes'
+Plugin 'scrooloose/nerdtree'
+"Plugin 'python-mode/python-mode'
 
 " Navigation
 Plugin 'kien/ctrlp.vim'
@@ -30,8 +34,6 @@ Plugin 'kien/ctrlp.vim'
 " Syntax highlighting
 Plugin 'w0rp/ale'
 
-" Language support
-Plugin 'Valloric/YouCompleteMe'
 
 " Colors and indentation
 Plugin 'flazz/vim-colorschemes'
@@ -61,7 +63,7 @@ set lazyredraw                  " Don't refresh screen when doing macros
 set backspace=indent,eol,start  " Make sure BS can delete indent, EOL and lines
 set scrolloff=10                " Scroll earlier by 10 lines instead of screen edge
 set wildmenu                    " Visual autocomplete for command menu
-set clipboard=unnamedplus       " Use system clipboard
+"set clipboard=unnamedplus       " Use system clipboard
 set signcolumn=yes              " Always show sign column (syntastic)
 set nosol                       " Don't change cursor column when scrolling
 
@@ -103,6 +105,13 @@ augroup AutoResizeWindows
   au VimResized * wincmd =
 augroup END
 
+set ttimeoutlen=10
+augroup FastEscape
+  autocmd!
+  au InsertEnter * set timeoutlen=0
+  au InsertLeave * set timeoutlen=1000
+augroup END
+
 "=====================================================
 " Code folding
 "=====================================================
@@ -115,7 +124,18 @@ set foldlevel=2         " Default fold level
 nnoremap <space> za
 
 "=====================================================
-" vim-powerline settings (installed with dnf)
+" GUI settings
+"=====================================================
+
+if has('gui_running')
+  set guifont=DejaVu_Sans_Mono_for_Powerline:h11:cANSI:qDRAFT
+  set guioptions-=T  " no toolbar
+  set guioptions-=t  " no tear-off menus
+  au GUIEnter * sim ~x " start maximized
+endif
+
+"=====================================================
+" airline settings
 "=====================================================
 
 set laststatus=2    " Always show bottom powerline
@@ -124,47 +144,21 @@ set laststatus=2    " Always show bottom powerline
 " Use 256 colours (Use this setting only if your terminal supports 256 colours)
 set t_Co=256
 
+let g:airline_theme='powerlineish'
+let g:airline_powerline_fonts=1
+
 "=====================================================
-" syntastic settings (removed with dnf; also see ale)
+" python-mode
 "=====================================================
 
-"set statusline+=%#warningmsg#
-"set statusline+=%{SyntasticStatuslineFlag()}
-"set statusline+=%*
-
-"let g:syntastic_always_populate_loc_list=1
-"let g:syntastic_auto_loc_list=0
-"let g:syntastic_check_on_open=1
-"let g:syntastic_check_on_wq=0
-""let g:syntastic_aggregate_errors=1          " Display checker-name for that error-message
-"let g:syntastic_enable_highlighting=0       " Disable highlighting to increase scroll speed
-
-"let g:syntastic_python_checkers=['flake8']
-"let g:syntastic_python_python_exec='python3'
-
-" Toggle checking if it's too slow
-"nnoremap <F10> :SyntasticToggleMode<CR>
-
-" Check file explicitly
-"nnoremap <silent> <F11> :SyntasticCheck<CR>
-
-" Toggle Errors window with keyboard
-"function! SyntasticToggleErrors()
-"  :SyntasticSetLoclist
-"  if empty(filter(tabpagebuflist(), 'getbufvar(v:val, "&buftype") is# "quickfix"'))
-"    lclose
-"    lopen
-"  else
-"    lclose
-"  endif
-"endfunction
-"nnoremap <silent> <F12> <Esc>:<C-u>call SyntasticToggleErrors()<CR>
+let g:pymode_python = 'python3'
 
 "=====================================================
 " ale syntax checking
 "=====================================================
 
 let g:ale_sign_column_always = 1
+let g:ale_completion_enabled = 1
 
 "=====================================================
 " Other keyboard shortcuts
@@ -191,7 +185,7 @@ inoremap <silent> <Esc>[3;2~ <C-o>dd
 nnoremap <silent> <Esc>[3;2~ dd
 
 " Save anywhere (remember to do stty -ixon in bashrc)
-inoremap <silent> <C-s> <Esc>:update<CR>
+inoremap <silent> <C-s> <C-o>:update<CR>
 nnoremap <silent> <C-s> :update<CR>
 
 " Quit shortcut to be useable with sessions - save current and quit all
@@ -221,9 +215,9 @@ augroup END
 
 set completeopt-=preview " Do not show any preview window in the bottom
 
-nmap <F2> :YcmCompleter GetDoc<CR>
-nmap <F3> :YcmCompleter GoToDefinition<CR>
-nmap <F4> :YcmCompleter GoToReferences<CR>
+nmap <F2> :ALEDocumentation<CR>
+nmap <F3> :ALEGoToDefinition<CR>
+nmap <F4> :ALEFindReferences<CR>
 
 "=====================================================
 " vim-ctrlp settings
