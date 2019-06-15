@@ -12,6 +12,16 @@
 if has('python3')
 endif
 
+" Virtualenv support
+py3 << EOF
+import os
+import sys
+if 'VIRTUAL_ENV' in os.environ:
+  project_base_dir = os.environ['VIRTUAL_ENV']
+  activate_this = os.path.join(project_base_dir, 'bin/activate_this.py')
+  execfile(activate_this, dict(__file__=activate_this))
+EOF
+
 " Be iMproved
 set nocompatible
 
@@ -26,14 +36,12 @@ Plugin 'VundleVim/Vundle.vim'
 Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
 Plugin 'scrooloose/nerdtree'
-"Plugin 'python-mode/python-mode'
 
 " Navigation
 Plugin 'kien/ctrlp.vim'
 
 " Syntax highlighting
 Plugin 'w0rp/ale'
-
 
 " Colors and indentation
 Plugin 'flazz/vim-colorschemes'
@@ -68,6 +76,7 @@ set signcolumn=yes              " Always show sign column (syntastic)
 set nosol                       " Don't change cursor column when scrolling
 
 " Tabs
+set encoding=utf-8  " Use UTF-8 encoding
 set ts=4            " Tabs have 4 spaces
 set shiftwidth=4    " Shift >> << by 4 spaces
 set autoindent      " Indent on next line
@@ -97,7 +106,6 @@ augroup CursorLineOnlyInActiveWindow
   autocmd!
   au VimEnter,BufEnter * setlocal cursorline
   au BufLeave * setlocal nocursorline
-  "au BufWinLeave * nested :lclose
 augroup END
 
 augroup AutoResizeWindows
@@ -105,6 +113,7 @@ augroup AutoResizeWindows
   au VimResized * wincmd =
 augroup END
 
+" Fast ESC key in Insert mode
 set ttimeoutlen=10
 augroup FastEscape
   autocmd!
@@ -118,7 +127,7 @@ augroup END
 
 set foldmethod=syntax   " Fold based on syntax
 set foldnestmax=10      " Maximum 10 levels of folding
-set foldlevel=2         " Default fold level
+set foldlevel=1         " Default fold level
 
 " Keyboard folding of code
 nnoremap <space> za
@@ -138,6 +147,7 @@ endif
 " airline settings
 "=====================================================
 
+let g:powerline_pycmd="py3"
 set laststatus=2    " Always show bottom powerline
 "set showtabline=2   " ALways show top tabline
 
@@ -164,21 +174,17 @@ let g:ale_completion_enabled = 1
 " Other keyboard shortcuts
 "=====================================================
 
-" Keyboard jumping for windows
-nnoremap <C-j> <C-w><C-j>
-nnoremap <C-k> <C-w><C-k>
-nnoremap <C-l> <C-w><C-l>
-nnoremap <C-h> <C-w><C-h>
+" Keyboard jumping from insert mode
 inoremap <C-w> <C-o><C-w>
 
 " Clear search highlighting
 nnoremap <silent> // :nohlsearch<CR>
 
 " Buffer list - disabled, see vim-ctrlp
-"nnoremap <C-B> :ls<CR>:b<Space>
+"nnoremap <C-b> :ls<CR>:b<Space>
 
 " Buffer close but keep window Ctrl-F4
-nnoremap <silent> <Esc>[1;5S :lclose<BAR>bp<CR>:bd#<CR>
+nnoremap <silent> <Esc>[1;5S :lclose<BAR>:cclose<BAR>bp<CR>:bd#<CR>
 
 " Delete line anywhere using Shift-Del
 inoremap <silent> <Esc>[3;2~ <C-o>dd
@@ -232,7 +238,7 @@ let g:ctrlp_cmd='CtrlPBuffer'
 
 let NERDTreeWinSize=40                                      " Bigger window size
 let g:NERDTreeWinPos="right"                              " Open always to the right
-let NERDTreeIgnore=['\.pyc$', '\.pyo$', '__pycache__$']     " Ignore files in NERDTree
+let NERDTreeIgnore=['\.pyc$', '\.pyo$', '__pycache__$', '\~$']   " Ignore files in NERDTree
 
 " NERDTree key with support for local window cursor highlighting
 " NERDTree is very ping-pongy related to window switching so we just disable them
