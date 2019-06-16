@@ -137,7 +137,7 @@ nnoremap <space> za
 "=====================================================
 
 if has('gui_running')
-  set guifont=DejaVu_Sans_Mono_for_Powerline:h11:cANSI:qDRAFT
+  set guifont=DejaVu_Sans_Mono_for_Powerline:h12:cANSI:qDRAFT
   set guioptions-=T  " no toolbar
   set guioptions-=t  " no tear-off menus
   au GUIEnter * sim ~x " start maximized
