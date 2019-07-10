@@ -104,8 +104,8 @@ cmap w!! %!sudo tee > /dev/null %
 set nocursorline    " Show no line by default - only in active win
 augroup CursorLineOnlyInActiveWindow
   autocmd!
-  au VimEnter,BufEnter * setlocal cursorline
-  au BufLeave * setlocal nocursorline
+  autocmd VimEnter,BufEnter,WinEnter * setlocal cursorline
+  autocmd BufLeave,WinLeave * setlocal nocursorline
 augroup END
 
 augroup AutoResizeWindows
@@ -149,13 +149,16 @@ endif
 
 let g:powerline_pycmd="py3"
 set laststatus=2    " Always show bottom powerline
-"set showtabline=2   " ALways show top tabline
+set showtabline=2   " Always show top tabline
 
 " Use 256 colours (Use this setting only if your terminal supports 256 colours)
 set t_Co=256
 
 let g:airline_theme='powerlineish'
 let g:airline_powerline_fonts=1
+let g:airline#extensions#tabline#fnamecollapse = 1
+let g:airline#extensions#tabline#fnamemod = ':p:.'
+let g:airline#extensions#tabline#formatter = 'short_path'
 
 "=====================================================
 " python-mode
@@ -230,23 +233,43 @@ nmap <F4> :ALEFindReferences<CR>
 "=====================================================
 
 let g:ctrlp_map='<C-p>'
-let g:ctrlp_cmd='CtrlPBuffer'
+let g:ctrlp_cmd='CtrlPLastMode'
 
 "=====================================================
 " NERDTree settings
 "=====================================================
 
-let NERDTreeWinSize=40                                      " Bigger window size
-let g:NERDTreeWinPos="right"                              " Open always to the right
-let NERDTreeIgnore=['\.pyc$', '\.pyo$', '__pycache__$', '\~$']   " Ignore files in NERDTree
+let g:NERDTreeWinSize=60 " Bigger window size
+let g:NERDTreeWinPos="right" " Open always to the right
+let NERDTreeIgnore=['\.pyc$', '\.pyo$', '__pycache__$', '\~$'] " Ignore files in NERDTree
+let NERDTreeQuitOnOpen=1 " If you open a file then close NERDTree
+let NERDTreeAutoDeleteBuffer=1 " If you delete a file then delete the buffer also
+let NERDTreeMinimalUI=1 " Don't show help ? info
+let NERDTreeDirArrows=1 " Use arrows for the tree
+let g:NERDTreeShowHidden=0 " By default, hide hidden files; show with <S-i>
+
+" Open NERDTree if closed, close if open; default within same folder as the
+" current file
+function! NERDTreeOpenCWDClose()
+  if exists('g:NERDTree') && g:NERDTree.IsOpen()
+    NERDTreeClose
+  elseif bufexists(expand('%'))
+    NERDTreeFind " If you use NERDTree %:p:h then it will not show hidden . files
+  else
+    NERDTree
+  endif
+endfunction
 
 " NERDTree key with support for local window cursor highlighting
 " NERDTree is very ping-pongy related to window switching so we just disable them
-nnoremap <silent> <C-n> :setlocal nocursorline<BAR>set ei=BufEnter,BufLeave<BAR>try<BAR>NERDTreeToggle<BAR>finally<BAR>set ei=<BAR>endtry<BAR>setlocal cursorline<CR>
-nnoremap <silent> <C-m> :setlocal nocursorline<BAR>set ei=BufEnter,BufLeave<BAR>try<BAR>NERDTreeFocus<BAR>finally<BAR>set ei=<BAR>endtry<BAR>setlocal cursorline<CR>
+nnoremap <silent> <C-n> :call NERDTreeOpenCWDClose()<CR>
+nnoremap <silent> <C-m> :NERDTreeFocus<CR>
+
+" Close NERDTree if it's the only one open in a tab
+au BufEnter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
 
 " Close NERDTree before saving session
-au VimLeavePre * if exists('g:NERDTree') && g:NERDTree.IsOpen() | NERDTreeToggle | endif | lclose | cclose
+au VimLeavePre * if exists('g:NERDTree') && g:NERDTree.IsOpen() | NERDTreeClose | endif | lclose | cclose
 
 "=====================================================
 " vim-session settings
