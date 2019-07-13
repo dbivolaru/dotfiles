@@ -35,9 +35,9 @@ call vundle#begin()
 Plugin 'VundleVim/Vundle.vim'
 Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
-Plugin 'scrooloose/nerdtree'
 
 " Navigation
+Plugin 'scrooloose/nerdtree'
 Plugin 'kien/ctrlp.vim'
 
 " Syntax highlighting
@@ -50,6 +50,10 @@ Plugin 'Yggdroot/indentLine'
 " Session management
 Plugin 'xolox/vim-misc'
 Plugin 'xolox/vim-session'
+
+" Language support
+Plugin 'davidhalter/jedi-vim'
+Plugin 'tmhedberg/SimpylFold'
 
 call vundle#end()
 filetype plugin indent on
@@ -126,11 +130,12 @@ augroup END
 "=====================================================
 
 set foldmethod=syntax   " Fold based on syntax
-set foldnestmax=10      " Maximum 10 levels of folding
+set foldcolumn=3        " Display 3 fold columns
 set foldlevel=1         " Default fold level
 
 " Keyboard folding of code
 nnoremap <space> za
+vnoremap <space> zf
 
 "=====================================================
 " GUI settings
@@ -147,8 +152,7 @@ endif
 " airline settings
 "=====================================================
 
-let g:powerline_pycmd="py3"
-set laststatus=2    " Always show bottom powerline
+set laststatus=2    " Always show bottom status
 set showtabline=2   " Always show top tabline
 
 " Use 256 colours (Use this setting only if your terminal supports 256 colours)
@@ -156,38 +160,47 @@ set t_Co=256
 
 let g:airline_theme='powerlineish'
 let g:airline_powerline_fonts=1
-let g:airline#extensions#tabline#fnamecollapse = 1
-let g:airline#extensions#tabline#fnamemod = ':p:.'
-let g:airline#extensions#tabline#formatter = 'short_path'
+let g:airline#extensions#tabline#enabled=1
+let g:airline#extensions#tabline#formatter='unique_tail'
+let g:airline#extensions#tabline#buffer_nr_show=1
+let g:airline#extensions#tabline#show_buffers=1
+let g:airline#extensions#tabline#show_splits=0
+let g:airline#extensions#tabline#show_tabs=0
+let g:airline#extensions#tabline#show_tab_nr=0
+let g:airline#extensions#tabline#show_tab_type=0
+let g:airline#extensions#tabline#show_close_button=0
+let g:airline#extensions#ctrlp#show_adjacent_modes=1
 
 "=====================================================
 " python-mode
 "=====================================================
 
-let g:pymode_python = 'python3'
+let g:pymode_python='python3'
 
 "=====================================================
 " ale syntax checking
 "=====================================================
 
-let g:ale_sign_column_always = 1
-let g:ale_completion_enabled = 1
+"set completeopt-=preview " Do not show any preview window in the bottom
+
+let g:ale_sign_column_always=1
+let g:ale_sign_error='EE'
+let g:ale_sign_warning = 'WW'
 
 "=====================================================
 " Other keyboard shortcuts
 "=====================================================
 
 " Keyboard jumping from insert mode
-inoremap <C-w> <C-o><C-w>
+inoremap <silent> <C-w> <C-o><C-w>
+inoremap <C-a> <C-o>0
+inoremap <C-e> <C-o>$
 
 " Clear search highlighting
 nnoremap <silent> // :nohlsearch<CR>
 
-" Buffer list - disabled, see vim-ctrlp
-"nnoremap <C-b> :ls<CR>:b<Space>
-
 " Buffer close but keep window Ctrl-F4
-nnoremap <silent> <Esc>[1;5S :lclose<BAR>:cclose<BAR>bp<CR>:bd#<CR>
+nnoremap <silent> <Esc>[1;5S :lclose<BAR>cclose<BAR>bp<CR>:bd#<CR>
 
 " Delete line anywhere using Shift-Del
 inoremap <silent> <Esc>[3;2~ <C-o>dd
@@ -200,6 +213,14 @@ nnoremap <silent> <C-s> :update<CR>
 " Quit shortcut to be useable with sessions - save current and quit all
 nnoremap <silent> <S-z><S-z> :update<BAR>qa<CR>
 nnoremap <silent> <S-z><S-q> :qa<CR>
+
+" Switch between buffers
+nnoremap <silent> <Tab> :bnext<CR>
+nnoremap <silent> <S-Tab> :bprev<CR>
+
+" Switch between tabs
+nnoremap <silent> <F9> :tabn<CR>
+nnoremap <silent> <F10> :tabp<CR>
 
 " Update time stamps etc. before saving
 function! PythonFileUpdater()
@@ -219,16 +240,6 @@ augroup AutomaticFileUpdaters
 augroup END
 
 "=====================================================
-" YouCompleteMe settings
-"=====================================================
-
-set completeopt-=preview " Do not show any preview window in the bottom
-
-nmap <F2> :ALEDocumentation<CR>
-nmap <F3> :ALEGoToDefinition<CR>
-nmap <F4> :ALEFindReferences<CR>
-
-"=====================================================
 " vim-ctrlp settings
 "=====================================================
 
@@ -241,11 +252,11 @@ let g:ctrlp_cmd='CtrlPLastMode'
 
 let g:NERDTreeWinSize=60 " Bigger window size
 let g:NERDTreeWinPos="right" " Open always to the right
-let NERDTreeIgnore=['\.pyc$', '\.pyo$', '__pycache__$', '\~$'] " Ignore files in NERDTree
-let NERDTreeQuitOnOpen=1 " If you open a file then close NERDTree
-let NERDTreeAutoDeleteBuffer=1 " If you delete a file then delete the buffer also
-let NERDTreeMinimalUI=1 " Don't show help ? info
-let NERDTreeDirArrows=1 " Use arrows for the tree
+let g:NERDTreeIgnore=['\.pyc$', '\.pyo$', '__pycache__$', '\~$'] " Ignore files in NERDTree
+let g:NERDTreeQuitOnOpen=1 " If you open a file then close NERDTree
+let g:NERDTreeAutoDeleteBuffer=1 " If you delete a file then delete the buffer also
+let g:NERDTreeMinimalUI=1 " Don't show help ? info
+let g:NERDTreeDirArrows=1 " Use arrows for the tree
 let g:NERDTreeShowHidden=0 " By default, hide hidden files; show with <S-i>
 
 " Open NERDTree if closed, close if open; default within same folder as the
@@ -263,7 +274,6 @@ endfunction
 " NERDTree key with support for local window cursor highlighting
 " NERDTree is very ping-pongy related to window switching so we just disable them
 nnoremap <silent> <C-n> :call NERDTreeOpenCWDClose()<CR>
-nnoremap <silent> <C-m> :NERDTreeFocus<CR>
 
 " Close NERDTree if it's the only one open in a tab
 au BufEnter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
@@ -280,4 +290,20 @@ let g:session_autosave='yes'
 let g:session_verbose_messages=0
 let g:session_persist_font=0
 let g:session_persist_colors=0
+
+"=====================================================
+" JEDI settings
+"=====================================================
+
+let g:jedi#popup_select_first=1
+let g:jedi#show_call_signatures=2
+let g:jedi#show_call_signatures_delay=0
+
+"=====================================================
+" SimplyFold settings
+"=====================================================
+
+let g:SimpylFold_docstring_preview=1
+let g:SimpylFold_fold_docstring=0
+let g:SimpylFold_fold_import=0
 
