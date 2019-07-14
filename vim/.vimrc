@@ -44,7 +44,7 @@ Plugin 'kien/ctrlp.vim'
 Plugin 'w0rp/ale'
 
 " Colors and indentation
-Plugin 'flazz/vim-colorschemes'
+Plugin 'sickill/vim-monokai'
 Plugin 'Yggdroot/indentLine'
 
 " Session management
@@ -63,19 +63,19 @@ filetype plugin indent on
 "=====================================================
 
 " Syntax
-syntax enable               " Enable syntax highlighting
-colorscheme Monokai         " Use syntax highlighting color scheme
-let python_highlight_all=1  " Python syntax highlighting
+syntax enable                   " Enable syntax highlighting
+colorscheme monokai             " Use syntax highlighting color scheme
+let python_highlight_all=1      " Python syntax highlighting
 
 " Screen
 set number                      " Show line numbers
 set ruler                       " Show bottom part cursor position (ruler)
 set ttyfast                     " Terminal acceleration
-set lazyredraw                  " Don't refresh screen when doing macros
+"set lazyredraw                 " Don't refresh screen when doing macros
 set backspace=indent,eol,start  " Make sure BS can delete indent, EOL and lines
 set scrolloff=10                " Scroll earlier by 10 lines instead of screen edge
 set wildmenu                    " Visual autocomplete for command menu
-"set clipboard=unnamedplus       " Use system clipboard
+"set clipboard=unnamedplus      " Use system clipboard
 set signcolumn=yes              " Always show sign column (syntastic)
 set nosol                       " Don't change cursor column when scrolling
 
@@ -100,9 +100,6 @@ set hidden              " When switching buffers, don't save or ask anything
 set switchbuf=useopen   " Jumping buffers when using quickfix
 set splitbelow          " Open horizontal splits down
 set splitright          " Open vertical splits to the right
-
-" If we forgot to sudo before an edit, then this allows to use w!! to save it
-cmap w!! %!sudo tee > /dev/null %
 
 " Cursor
 set nocursorline    " Show no line by default - only in active win
@@ -129,6 +126,8 @@ augroup END
 " Code folding
 "=====================================================
 
+set tags=tags;~
+
 set foldmethod=syntax   " Fold based on syntax
 set foldcolumn=3        " Display 3 fold columns
 set foldlevel=1         " Default fold level
@@ -136,6 +135,9 @@ set foldlevel=1         " Default fold level
 " Keyboard folding of code
 nnoremap <space> za
 vnoremap <space> zf
+
+" Replace default tags goto with list if many matches
+nnoremap <C-]> g<C-]>
 
 "=====================================================
 " GUI settings
@@ -154,6 +156,8 @@ endif
 
 set laststatus=2    " Always show bottom status
 set showtabline=2   " Always show top tabline
+set noshowmode
+set noshowcmd
 
 " Use 256 colours (Use this setting only if your terminal supports 256 colours)
 set t_Co=256
@@ -172,35 +176,41 @@ let g:airline#extensions#tabline#show_close_button=0
 let g:airline#extensions#ctrlp#show_adjacent_modes=1
 
 "=====================================================
-" python-mode
-"=====================================================
-
-let g:pymode_python='python3'
-
-"=====================================================
 " ale syntax checking
 "=====================================================
 
-"set completeopt-=preview " Do not show any preview window in the bottom
+"autocmd FileType python set completeopt-=preview " Do not show any preview window in the bottom
 
 let g:ale_sign_column_always=1
 let g:ale_sign_error='EE'
 let g:ale_sign_warning = 'WW'
 
+nnoremap <silent> <F7> :ALEPreviousWrap<CR>
+nnoremap <silent> <F8> :ALENextWrap<CR>
+
 "=====================================================
 " Other keyboard shortcuts
 "=====================================================
 
+" If we forgot to sudo before an edit, then this allows to use w!! to save it
+cmap w!! %!sudo tee > /dev/null %
+
 " Keyboard jumping from insert mode
 inoremap <silent> <C-w> <C-o><C-w>
-inoremap <C-a> <C-o>0
+inoremap <C-a> <C-o>^
 inoremap <C-e> <C-o>$
+
+" Search-replace for word under cursor
+nnoremap <Leader>h :%s/\<<C-r><C-w>\>//g<Left><Left>
 
 " Clear search highlighting
 nnoremap <silent> // :nohlsearch<CR>
 
 " Buffer close but keep window Ctrl-F4
 nnoremap <silent> <Esc>[1;5S :lclose<BAR>cclose<BAR>bp<CR>:bd#<CR>
+
+" Buffer show
+nnoremap <Leader>b :ls<CR>:b<Space>
 
 " Delete line anywhere using Shift-Del
 inoremap <silent> <Esc>[3;2~ <C-o>dd
@@ -215,12 +225,12 @@ nnoremap <silent> <S-z><S-z> :update<BAR>qa<CR>
 nnoremap <silent> <S-z><S-q> :qa<CR>
 
 " Switch between buffers
-nnoremap <silent> <Tab> :bnext<CR>
-nnoremap <silent> <S-Tab> :bprev<CR>
+nnoremap <silent> <F5> :bprev<CR>
+nnoremap <silent> <F6> :bnext<CR>
 
 " Switch between tabs
-nnoremap <silent> <F9> :tabn<CR>
-nnoremap <silent> <F10> :tabp<CR>
+nnoremap <silent> <F9> :tabp<CR>
+nnoremap <silent> <F10> :tabn<CR>
 
 " Update time stamps etc. before saving
 function! PythonFileUpdater()
@@ -295,9 +305,14 @@ let g:session_persist_colors=0
 " JEDI settings
 "=====================================================
 
-let g:jedi#popup_select_first=1
-let g:jedi#show_call_signatures=2
-let g:jedi#show_call_signatures_delay=0
+let g:pymode_rope=0  " Faster in case python mode is installed
+let g:jedi#popup_on_dot=0 " This seems too laggy, so we disable
+let g:jedi#popup_select_first=1 " Saves one key strokei
+let g:jedi#show_call_signatures=0 " This seems too lagy, so we disable
+let g:jedi#show_call_signatures_delay=0 " Show signature immediately
+
+" Call signature scan get quite slow with big libraries like pandas
+"autocmd FileType python call jedi#configure_call_signatures()
 
 "=====================================================
 " SimplyFold settings
