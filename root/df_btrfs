@@ -1,0 +1,10 @@
+total_space=$(btrfs fi df -g / | grep Data | cut -d= -f2 | cut -dG -f1)
+used_space=$(btrfs fi df -g / | grep Data | cut -d= -f3 | cut -dG -f1)
+free_space=$(echo "$total_space - $used_space" | bc )
+echo ${free_space}GiB
+maxsize_other=1
+maxsize_more=8
+minfree_root=2
+maxsize_nonroot=$(echo "$total_space - 6 * $maxsize_other - 3 * $maxsize_more - $minfree_root" | bc)
+echo ${maxsize_nonroot}GiB
+

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+timedatectl set-ntp no
+sleep 1
+timedatectl set-ntp yes
+

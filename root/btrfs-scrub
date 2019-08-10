@@ -1,0 +1,30 @@
+#!/bin/bash
+
+[[ -e $1 ]] || { echo "ERROR: cannot access '$1': No such file or directory"; exit 1; }
+
+BTRFS_PROG=/sbin/btrfs
+BTRFS_BALANCE_DUSAGE="0 1 5 10 20 30 40 50"
+BTRFS_BALANCE_MUSAGE="0 1 5 10 20 30"
+IO_PRIO="-c 2 -n 0" # -c 2 -n 0 for best effort high prio; -c 3 -n 7 for idle low prio
+
+echo "----- scrub -----"
+$BTRFS_PROG scrub start -Bd $IO_PRIO $1
+
+echo "----- df (before balance) -----"
+$BTRFS_PROG filesystem df $1
+
+for BBDU in $BTRFS_BALANCE_DUSAGE; do
+    echo "----- balance dusage=$BBDU -----"
+    $BTRFS_PROG balance start -dusage=$BBDU -v $1
+done
+for BBMU in $BTRFS_BALANCE_MUSAGE; do
+    echo "----- balance musage=$BBMU -----"
+    $BTRFS_PROG balance start -musage=$BBMU -v $1
+done
+
+echo "----- df (after balance) -----"
+$BTRFS_PROG filesystem df $1
+
+#echo "----- defragment -----"
+#find $1 -xdev -type f -exec $BTRFS_PROG defragment -r -f -clzo '{}' \;
+

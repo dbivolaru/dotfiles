@@ -1,12 +1,22 @@
+# .bashrc
+
+# Source global definitions
 if [ -f /etc/bashrc ]; then
-    . /etc/bashrc
+	. /etc/bashrc
 fi
 
+# Uncomment the following line if you don't like systemctl's auto-paging feature:
+# export SYSTEMD_PAGER=
+
+# User specific aliases and functions
 alias ll='ls -l --color=auto --group-directories-first' 2>/dev/null
 alias l.='ls -d .* --color=auto --group-directories-first' 2>/dev/null
 alias ls='ls --color=auto --group-directories-first' 2>/dev/null
+if [[ -x "$(command -v vimx)" && -n $DISPLAY ]]; then alias vim='vimx'; fi
 
 stty -ixon
+
+export EDITOR='vim'
 
 get_git_branch() {
 	git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/ (\1)/'

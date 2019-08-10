@@ -1,0 +1,36 @@
+#!/bin/sh
+
+git config --global init.templatedir '~/.git_template'
+mkdir -p ~/.git_template/hooks
+
+cat > ~/.git_template/hooks/ctags <<'EOF'
+#!/bin/sh
+set -e
+dir="`git rev-parse --git-dir`"
+trap 'rm -f "$dir/$$.tags"' EXIT
+# To index python libraries: python3 -c "import os, sys; print('\n'.join(d for d in sys.path if os.path.isdir(d)))"
+git ls-files | ctags --tag-relative --python-kinds=-iv -L - -f "$dir/$$.tags" --languages=-JavaScript,SQL 
+mv "$dir/$$.tags" "$dir/tags"
+EOF
+
+chmod 755 ~/.git_template/hooks/ctags
+
+cat > ~/.git_template/hooks/post-commit <<'EOF'
+#!/bin/sh
+.git/hooks/ctags >/dev/null 2>&1 &
+EOF
+
+chmod 755 ~/.git_template/hooks/post-commit
+cp ~/.git_template/hooks/post-commit ~/.git_template/hooks/post-merge
+cp ~/.git_template/hooks/post-commit ~/.git_template/hooks/post-checkout
+
+
+cat > ~/.git_template/hooks/post-rewrite <<'EOF'
+#!/bin/sh
+case "$1" in
+  rebase) exec .git/hooks/post-merge ;;
+esac
+EOF
+
+chmod 755 ~/.git_template/hooks/post-rewrite
+

@@ -1,0 +1,8 @@
+#!/bin/bash
+xhost +SI:localuser:root
+notify-send "Enabled root user on xhost"
+sudo $1
+
+xhost -SI:localuser:root
+notify-send "Disabled root user on xhost"
+

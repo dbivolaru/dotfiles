@@ -1,0 +1,15 @@
+#!/bin/bash
+
+echo "Rebuilding RPM DB..."
+rpm --rebuilddb
+
+echo "Distro sync..."
+dnf distro-sync --setopt=deltarpm=0 --allowerasing
+
+echo "Updatedb..."
+updatedb
+
+echo "SELinux relabel flag set. Please reboot."
+#touch /.autorelabel
+fixfiles onboot
+

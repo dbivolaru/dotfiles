@@ -1,0 +1,6 @@
+#!/bin/bash
+# Description: Remove all backup files from / directory
+# Usage: cleanuproot
+
+find / -xdev -name \*~ -delete -exec echo "D> " '{}' \;
+

@@ -1,0 +1,25 @@
+#!/bin/sh
+
+# Build tools
+dnf install -y rpm-build gcc rpmdevtools
+
+# Pre-reqs
+dnf install -y bzip2-devel libX11-devel libpng-devel zlib-devel
+
+# Download freetype source
+rm -f freetype-*.src.rpm
+dnf download --source freetype
+
+# Install source
+rpm -ihv freetype-*.src.rpm
+
+# Recompile source with subpixel rendering
+pushd ~/rpmbuild/SPECS/
+rpmbuild --with subpixel_rendering -bb freetype.spec
+popd
+
+# Install new subpixel rendering support
+pushd ~/rpmbuild/RPMS/x86_64/
+echo rpm -Uhv --force freetype-*.x86_64.rpm
+popd
+

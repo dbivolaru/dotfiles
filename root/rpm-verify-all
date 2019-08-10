@@ -1,0 +1,39 @@
+#!/bin/sh
+
+dnf install -y rpmconf dnf-plugins-core
+echo "*****"
+echo "* Preliminary RPM verify..."
+echo "*****"
+rpm -Va --nofiles --nodigest
+echo "*****"
+echo "* DNF verify..."
+echo "*****"
+dnf check
+echo "*****"
+echo "* Packages with problems..."
+echo "*****"
+dnf repoquery --unsatisfied
+echo "*****"
+echo "* Packages with orphans..."
+echo "*****"
+dnf list extras --exclude=kernel,kernel-\*
+echo "*****"
+echo "* Packages with dupes..."
+echo "*****"
+dnf repoquery --duplicated
+#echo "Prelinking..."
+#. /etc/sysconfig/prelink && /usr/sbin/prelink -av $PRELINK_OPTS >> /var/log/prelink/prelink.log 2>&1
+#/sbin/ldconfig
+echo "*****"
+echo "* Full verify..."
+echo "*****"
+rpm -Va > /tmp/rpm-Va.txt 2>&1
+egrep '^.{9}  c /' /tmp/rpm-Va.txt > /tmp/REVIEW-CONFIGS.txt
+egrep -v '^.{9}  c /' /tmp/rpm-Va.txt > /tmp/URGENT-REVIEW.txt
+rpmconf -a
+find /etc /var -name '*.rpm?*' > /tmp/REVIEW-OBSOLETE-CONFIGS.txt
+echo "*** /tmp/rpm-Va.txt"
+echo "*** /tmp/REVIEW-CONFIGS.txt"
+echo "*** /tmp/URGENT-REVIEW.txt"
+echo "*** /tmp/REVIEW-OBSOLETE-CONFIGS.txt"
+
