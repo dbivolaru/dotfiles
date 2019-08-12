@@ -26,6 +26,10 @@ Plugin 'VundleVim/Vundle.vim'
 Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
 
+" Git
+Plugin 'tpope/vim-fugitive'
+Plugin 'tpope/vim-unimpaired'
+
 " Navigation
 Plugin 'scrooloose/nerdtree'
 Plugin 'kien/ctrlp.vim'
@@ -63,12 +67,15 @@ let python_highlight_all=1      " Python syntax highlighting
 set number                      " Show line numbers
 set ruler                       " Show bottom part cursor position (ruler)
 set ttyfast                     " Terminal acceleration
-set lazyredraw                 " Don't refresh screen when doing macros
+set lazyredraw                  " Don't refresh screen when doing macros
+set synmaxcol=300               " Disable syntax highlighting after 200 cols (faster)
 set backspace=indent,eol,start  " Make sure BS can delete indent, EOL and lines
 set scrolloff=10                " Scroll earlier by 10 lines instead of screen edge
 set wildmenu                    " Visual autocomplete for command menu
 set signcolumn=yes              " Always show sign column (syntastic)
 set nosol                       " Don't change cursor column when scrolling
+set incsearch                   " Incremental search
+set complete-=i                 " No include files in completion
 
 " Tabs
 set encoding=utf-8  " Use UTF-8 encoding
@@ -83,6 +90,7 @@ augroup FileTypeTabHandling
   au FileType sh setlocal noexpandtab
   au Filetype vim set ts=2 | set shiftwidth=2
   "au FileType python set completeopt-=preview
+  au FileType qf wincmd J
 augroup END
 
 " Backup / swap files
@@ -96,6 +104,7 @@ set confirm             " Ask instead of fail
 set switchbuf=useopen   " Jumping buffers when using quickfix
 set splitbelow          " Open horizontal splits down
 set splitright          " Open vertical splits to the right
+set autoread            " File changed, read it
 
 " Cursor
 set nocursorline    " Show no line by default - only in active win
@@ -127,20 +136,7 @@ set tags=tags;~
 set foldmethod=syntax   " Fold based on syntax
 set foldcolumn=3        " Display 3 fold columns
 set foldlevel=1         " Default fold level
-
-"=====================================================
-" GUI settings
-"=====================================================
-
-if has('gui_running')
-  set guifont=DejaVu_Sans_Mono_for_Powerline:h12:cANSI:qDRAFT
-  set guioptions-=T  " no toolbar
-  set guioptions-=t  " no tear-off menus
-  augroup HandleGUI
-    autocmd!
-    au GUIEnter * sim ~x " start maximized
-  augroup END
-endif
+set foldminlines=5      " Fold at least 5 lines
 
 "=====================================================
 " airline settings
@@ -149,7 +145,7 @@ endif
 set laststatus=2    " Always show bottom status
 set showtabline=2   " Always show top tabline
 set noshowmode
-set noshowcmd
+set showcmd
 
 " Use 256 colours (Use this setting only if your terminal supports 256 colours)
 set t_Co=256
@@ -221,6 +217,12 @@ function! AddOtherShortcuts()
   nnoremap <silent> <S-z><S-z> :update<BAR>qa<CR>
   nnoremap <silent> <S-z><S-q> :qa<CR>
 
+  " Find in files (needs vim-fugitive)
+  nnoremap <F4> :silent! execute "grep -srnw --binary-files=without-match --exclude-dir=.git
+                \ <C-r>=fnamemodify(get(b:, 'git_dir', '.'), ':h')<CR>
+                \ -e <C-r>=expand('<cword>')<CR>"<BAR>cwindow
+                \<Left><Left><Left><Left><Left><Left><Left><Left><Left>
+
   " Switch between buffers
   nnoremap <silent> <F5> :bprev<CR>
   nnoremap <silent> <F6> :bnext<CR>
@@ -234,7 +236,7 @@ function! AddOtherShortcuts()
   nnoremap <silent> <F10> :tabn<CR>
 
   " Buffer close but keep window Ctrl-F4
-  nnoremap <silent> <Esc>[1;5S :lclose<BAR>cclose<BAR>pclose<BAR>b#<CR>:bd#<CR>
+  nnoremap <silent> <Esc>[1;5S :lclose<BAR>cclose<BAR>pclose<BAR>bp<CR>:bd#<CR>
 
   " Delete line anywhere using Shift-Del
   inoremap <silent> <Esc>[3;2~ <C-\><C-o>dd
@@ -304,13 +306,13 @@ function! NERDTreeOpenCWDClose()
   endif
 endfunction
 
-augroup NERDTreeAutoClose
+augroup AutoClose
   autocmd!
   " Close NERDTree if it's the only one open in a tab
-  au BufEnter * if (winnr("$") == 1 && exists("b:NERDTreeType") && b:NERDTreeType == "primary") | q | endif
+  au BufEnter * if winnr("$") == 1 && exists('g:NERDTree') && g:NERDTree.IsOpen() | q | endif
 
-  " Close NERDTree before saving session
-  au VimLeavePre * if exists('g:NERDTree') && g:NERDTree.IsOpen() | NERDTreeClose | endif | lclose | cclose
+  " Close other stuff before saving session
+  au VimLeavePre * call tagbar#CloseWindow() | NERDTreeClose | lclose | cclose | pclose
 augroup END
 
 "=====================================================
