@@ -26,9 +26,10 @@ Plugin 'VundleVim/Vundle.vim'
 Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
 
-" Git
+" Support for G commands and []/gc keybinds
 Plugin 'tpope/vim-fugitive'
 Plugin 'tpope/vim-unimpaired'
+Plugin 'tpope/vim-commentary'
 
 " Navigation
 Plugin 'scrooloose/nerdtree'
@@ -77,6 +78,14 @@ set nosol                       " Don't change cursor column when scrolling
 set incsearch                   " Incremental search
 set complete-=i                 " No include files in completion
 
+" Horizontal scrolling, or lack thereof
+if &diff == 0
+  set wrap
+  set linebreak
+  set breakindent
+  let &showbreak='↪ '
+endif
+
 " Tabs
 set encoding=utf-8  " Use UTF-8 encoding
 set ts=4            " Tabs have 4 spaces
@@ -97,6 +106,8 @@ augroup END
 set nobackup            " No backup files
 set nowritebackup       " No backup while editing
 set noswapfile          " No swap files
+set modelines=0         " No modelines
+set nomodeline          " No modelines, again
 
 " Buffers / windows
 set hidden              " When switching buffers, don't save or ask anything
@@ -119,8 +130,8 @@ augroup AutoResizeWindows
   au VimResized * wincmd =
 augroup END
 
-" Fast ESC key in Insert mode
-set ttimeoutlen=10
+" Fast ESC keymaps
+set ttimeout ttimeoutlen=10
 augroup FastEscape
   autocmd!
   au InsertEnter * set timeoutlen=0
@@ -171,17 +182,29 @@ let g:airline#extensions#ale#enabled=1
 
 let g:ale_sign_column_always=1
 let g:ale_sign_error='EE'
-let g:ale_sign_warning = 'WW'
+let g:ale_sign_warning='WW'
 
 "=====================================================
 " Other keyboard shortcuts
 "=====================================================
 
 " If we forgot to sudo before an edit, then this allows to use w!! to save it
-cmap w!! %!sudo tee > /dev/null %
+cnoremap w!! %!sudo tee > /dev/null %
 
 " Other shortcuts that rely on ESC
 function! AddOtherShortcuts()
+  " Movement on big linebreak'ed lines
+  nnoremap j gj
+  nnoremap k gk
+  vnoremap j gj
+  vnoremap k gk
+  nnoremap <Down> gj
+  nnoremap <Up> gk
+  vnoremap <Down> gj
+  vnoremap <Up> gk
+  inoremap <Down> <C-\><C-o>gj
+  inoremap <Up> <C-\><C-o>gk
+
   " Keyboard folding of code
   nnoremap <space> za
   vnoremap <space> zf
@@ -190,22 +213,45 @@ function! AddOtherShortcuts()
   nnoremap <C-]> g<C-]>
 
   " Keyboard jumping from insert mode
-  inoremap <silent> <C-w> <C-\><C-o><C-w>
-  inoremap <C-a> <C-\><C-o>^
+  inoremap <C-a> <C-\><C-o>0
+  inoremap <C-b> <C-\><C-o>^
   inoremap <C-e> <C-\><C-o>$
 
   " Write undo history when making a new line
   inoremap <CR> <C-g>u<CR>
 
-  " Search-replace for word under cursor
-  nnoremap <Leader>h :%s/\V\<<C-r>=escape(expand('<cword>'), '/\')<CR>\>//gc<Left><Left><Left>
+  " Write undo history when using register commands
+  inoremap <C-r> <C-g>u<C-r>
 
   " Search word under cursor
-  nnoremap <Leader>f :/\V\<<C-r>=escape(expand('<cword>'), '/\')<CR>\>/
+  nnoremap <Leader>f :/\V\<<C-r>=escape(expand('<cword>'), '/\?')<CR>\>/
+  nnoremap <Leader>F :/\V<C-r>=escape(expand('<cWORD>'), '/\?')<CR>/
  
+  " Search-replace for word under cursor
+  nnoremap <Leader>h :%s/\V\<<C-r>=escape(expand('<cword>'), '/\?')<CR>\>//gc<Left><Left><Left>
+  nnoremap <Leader>H :%s/\V<C-r>=escape(expand('<cWORD>'), '/\?')<CR>//gc<Left><Left><Left>
+
+  " Find in files (needs vim-fugitive for git_dir function)
+  nnoremap <Leader>gf :cexpr []<BAR>silent! execute "grep! -srnw --binary-files=without-match --exclude-dir=.git
+                \ <C-r>=shellescape(fnamemodify(get(b:, 'git_dir', '.'), ':h'))<CR>
+                \ -e <C-r>=shellescape(expand('<cword>'))<CR>"<BAR>cwindow<BAR>redraw!<S-Left>
+  nnoremap <Leader>gF :cexpr []<BAR>silent! execute "grep! -srn --binary-files=without-match --exclude-dir=.git
+                \ <C-r>=shellescape(fnamemodify(get(b:, 'git_dir', '.'), ':h'))<CR>
+                \ -e <C-r>=shellescape(expand('<cWORD>'))<CR>"<BAR>cwindow<BAR>redraw!<S-Left>
+
+  " Replace in qf found files with \gf or \gF
+  nnoremap <Leader>gh :cdo %s/\V\<<C-r>=escape(expand('<cword>'), '/\?')<CR>\>//gc<Left><Left><Left>
+  nnoremap <Leader>gH :cdo %s/\V<C-r>=escape(expand('<cWORD>'), '/\?')<CR>//gc<Left><Left><Left>
+
   " Clear search highlighting
   nnoremap <silent> // :nohlsearch<CR>
 
+  " Find tags in files (needs vim-fugitive for git_dir function)
+  nnoremap <Leader>t :cexpr []<BAR>vimgrep! /\C\vTODO\|FIXME/j % <BAR>cwindow<CR>
+  nnoremap <Leader>gt :cexpr []<BAR>silent! execute "grep! -srnE --binary-files=without-match --exclude-dir=.git
+                \ <C-r>=shellescape(fnamemodify(get(b:, 'git_dir', '.'), ':h'))<CR>
+                \ -e 'TODO\\<BAR>FIXME'"<BAR>cwindow<BAR>redraw!<CR>
+  
   " Buffer show
   nnoremap <Leader>b :ls<CR>:b<Space>
 
@@ -217,28 +263,10 @@ function! AddOtherShortcuts()
   nnoremap <silent> <S-z><S-z> :update<BAR>qa<CR>
   nnoremap <silent> <S-z><S-q> :qa<CR>
 
-  " Find in files (needs vim-fugitive)
-  nnoremap <F4> :silent! execute "grep -srnw --binary-files=without-match --exclude-dir=.git
-                \ <C-r>=fnamemodify(get(b:, 'git_dir', '.'), ':h')<CR>
-                \ -e <C-r>=expand('<cword>')<CR>"<BAR>cwindow
-                \<Left><Left><Left><Left><Left><Left><Left><Left><Left>
+  " Buffer close but keep window
+  nnoremap <silent> <Leader>c :lclose<BAR>cclose<BAR>pclose<BAR>bp<CR>:bd#<CR>
 
-  " Switch between buffers
-  nnoremap <silent> <F5> :bprev<CR>
-  nnoremap <silent> <F6> :bnext<CR>
-
-  " ALE keyboard shortcuts
-  nnoremap <silent> <F7> :ALEPreviousWrap<CR>
-  nnoremap <silent> <F8> :ALENextWrap<CR>
-
-  " Switch between tabs
-  nnoremap <silent> <F9> :tabp<CR>
-  nnoremap <silent> <F10> :tabn<CR>
-
-  " Buffer close but keep window Ctrl-F4
-  nnoremap <silent> <Esc>[1;5S :lclose<BAR>cclose<BAR>pclose<BAR>bp<CR>:bd#<CR>
-
-  " Delete line anywhere using Shift-Del
+  " Delete line anywhere using Shift-Del; requires FastEscape
   inoremap <silent> <Esc>[3;2~ <C-\><C-o>dd
   nnoremap <silent> <Esc>[3;2~ dd
 
@@ -339,7 +367,7 @@ let g:jedi#show_call_signatures_delay=0 " Show signature immediately
 "autocmd FileType python call jedi#configure_call_signatures()
 
 "=====================================================
-" SimplyFold settings
+" SimpylFold settings
 "=====================================================
 
 let g:SimpylFold_docstring_preview=1
