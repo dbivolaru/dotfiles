@@ -30,6 +30,7 @@ Plugin 'vim-airline/vim-airline-themes'
 Plugin 'tpope/vim-fugitive'
 Plugin 'tpope/vim-unimpaired'
 Plugin 'tpope/vim-commentary'
+Plugin 'tpope/vim-surround'
 
 " Navigation
 Plugin 'scrooloose/nerdtree'
@@ -98,7 +99,7 @@ augroup FileTypeTabHandling
   autocmd!
   au FileType sh setlocal noexpandtab
   au Filetype vim set ts=2 | set shiftwidth=2
-  "au FileType python set completeopt-=preview
+  " au FileType python set completeopt-=preview
   au FileType qf wincmd J
 augroup END
 
@@ -131,18 +132,18 @@ augroup AutoResizeWindows
 augroup END
 
 " Fast ESC keymaps
-set ttimeout ttimeoutlen=10
-augroup FastEscape
-  autocmd!
-  au InsertEnter * set timeoutlen=0
-  au InsertLeave * set timeoutlen=1000
-augroup END
+" set ttimeout ttimeoutlen=10
+" augroup FastEscape
+"   autocmd!
+"   au InsertEnter * set timeoutlen=0
+"   au InsertLeave * set timeoutlen=1000
+" augroup END
 
 "=====================================================
 " Code folding
 "=====================================================
 
-set tags=tags;~
+set tags^=./.git/tags;
 
 set foldmethod=syntax   " Fold based on syntax
 set foldcolumn=3        " Display 3 fold columns
@@ -191,7 +192,7 @@ let g:ale_sign_warning='WW'
 " If we forgot to sudo before an edit, then this allows to use w!! to save it
 cnoremap w!! %!sudo tee > /dev/null %
 
-" Other shortcuts that rely on ESC
+" Setup shortcuts at VimEnter
 function! AddOtherShortcuts()
   " Movement on big linebreak'ed lines
   nnoremap j gj
@@ -251,7 +252,10 @@ function! AddOtherShortcuts()
   nnoremap <Leader>gt :cexpr []<BAR>silent! execute "grep! -srnE --binary-files=without-match --exclude-dir=.git
                 \ <C-r>=shellescape(fnamemodify(get(b:, 'git_dir', '.'), ':h'))<CR>
                 \ -e 'TODO\\<BAR>FIXME'"<BAR>cwindow<BAR>redraw!<CR>
-  
+
+  " Filer quicklist
+  nnoremap <Leader>q :call setqflist(filter(getqflist(), "bufname(v:val['bufnr']) =~# ''"))<Left><Left><Left><Left>
+
   " Buffer show
   nnoremap <Leader>b :ls<CR>:b<Space>
 
@@ -267,8 +271,8 @@ function! AddOtherShortcuts()
   nnoremap <silent> <Leader>c :lclose<BAR>cclose<BAR>pclose<BAR>bp<CR>:bd#<CR>
 
   " Delete line anywhere using Shift-Del; requires FastEscape
-  inoremap <silent> <Esc>[3;2~ <C-\><C-o>dd
-  nnoremap <silent> <Esc>[3;2~ dd
+  " inoremap <silent> <Esc>[3;2~ <C-\><C-o>dd
+  " nnoremap <silent> <Esc>[3;2~ dd
 
   " NERDTree
   nnoremap <silent> <C-n> :call NERDTreeOpenCWDClose()<CR>
@@ -284,6 +288,7 @@ augroup END
 " Update time stamps etc. before saving
 function! PythonFileUpdater()
   exec 'norm mz'
+  let l:view = winsaveview()
   retab " Replace tabs with spaces
   try
     exec '1,20 s/__updated__\s*=\s*''\S*''/__updated__ = '''.strftime('%Y-%m-%d').'''/i'
@@ -291,6 +296,8 @@ function! PythonFileUpdater()
     silent! exec '/__updated__/s/__updated__\s*=\s*''\S*''/__updated__ = '''.strftime('%Y-%m-%d').'''/i'
   finally
     exec 'norm `z'
+    exec 'delmarks z'
+    call winrestview(l:view)
   endtry
 endfunction
 augroup AutomaticFileUpdaters
@@ -364,7 +371,7 @@ let g:jedi#show_call_signatures=0 " This seems too lagy, so we disable
 let g:jedi#show_call_signatures_delay=0 " Show signature immediately
 
 " Call signature scan get quite slow with big libraries like pandas
-"autocmd FileType python call jedi#configure_call_signatures()
+" autocmd FileType python call jedi#configure_call_signatures()
 
 "=====================================================
 " SimpylFold settings
