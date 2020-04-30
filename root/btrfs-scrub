@@ -26,5 +26,5 @@ echo "----- df (after balance) -----"
 $BTRFS_PROG filesystem df $1
 
 #echo "----- defragment -----"
-#find $1 -xdev -type f -exec $BTRFS_PROG defragment -r -f -clzo '{}' \;
+#find $1 -xdev -type f -exec $BTRFS_PROG defragment -r -f -cztd '{}' \;
 

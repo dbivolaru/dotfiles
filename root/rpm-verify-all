@@ -1,39 +1,67 @@
 #!/bin/sh
 
-dnf install -y rpmconf dnf-plugins-core
+dnf upgrade --refresh
+dnf install -y rpmconf dnf-plugins-core symlinks
 echo "*****"
-echo "* Preliminary RPM verify..."
+echo "* RPM verify..."
 echo "*****"
 rpm -Va --nofiles --nodigest
+
 echo "*****"
 echo "* DNF verify..."
 echo "*****"
 dnf check
+
 echo "*****"
 echo "* Packages with problems..."
 echo "*****"
 dnf repoquery --unsatisfied
+
 echo "*****"
-echo "* Packages with orphans..."
+echo "* Packages with orphans (list only; removed in next steps)"
 echo "*****"
 dnf list extras --exclude=kernel,kernel-\*
+
 echo "*****"
 echo "* Packages with dupes..."
 echo "*****"
 dnf repoquery --duplicated
+
+echo "*****"
+echo "* Dangling symlinks (list only; removed in next steps)"
+echo "*****"
+symlinks -r /usr | grep dangling
+
+read -rsn1 -p "Press any key to continue"; echo
+
 #echo "Prelinking..."
 #. /etc/sysconfig/prelink && /usr/sbin/prelink -av $PRELINK_OPTS >> /var/log/prelink/prelink.log 2>&1
 #/sbin/ldconfig
+
+echo "*****"
+echo "* Packages with orphans (cleanup)"
+echo "*****"
+dnf remove $(dnf repoquery --extras --exclude=kernel,kernel-\*)
+
+echo "*****"
+echo "* Dangling symlinks (cleanup)"
+echo "*****"
+symlinks -r -d /usr
+
 echo "*****"
 echo "* Full verify..."
 echo "*****"
-rpm -Va > /tmp/rpm-Va.txt 2>&1
+rpm -Va >/tmp/rpm-Va.txt 2>&1
+rpm -qf $(cat /tmp/rpm-Va.txt | sed 's|.* /|/|') 2>&1 | sort | uniq >/tmp/rpm-Va.pkgs.txt
 egrep '^.{9}  c /' /tmp/rpm-Va.txt > /tmp/REVIEW-CONFIGS.txt
+rpm -qf $(cat /tmp/REVIEW-CONFIGS.txt | sed 's|.* /|/|') 2>&1 | sort | uniq >/tmp/REVIEW-CONFIGS.pkgs.txt
 egrep -v '^.{9}  c /' /tmp/rpm-Va.txt > /tmp/URGENT-REVIEW.txt
+rpm -qf $(cat /tmp/URGENT-REVIEW.txt | sed 's|.* /|/|') 2>&1 | sort | uniq >/tmp/URGENT-REVIEW.pkgs.txt
 rpmconf -a
 find /etc /var -name '*.rpm?*' > /tmp/REVIEW-OBSOLETE-CONFIGS.txt
-echo "*** /tmp/rpm-Va.txt"
-echo "*** /tmp/REVIEW-CONFIGS.txt"
-echo "*** /tmp/URGENT-REVIEW.txt"
+echo "*** /tmp/rpm-Va.txt /tmp/rpm-Va.pkgs.txt"
+echo "*** /tmp/REVIEW-CONFIGS.txt /tmp/REVIEW-CONFIGS.pkgs.txt"
+echo "*** /tmp/URGENT-REVIEW.txt /tmp/URGENT-REVIEW.pkgs.txt"
 echo "*** /tmp/REVIEW-OBSOLETE-CONFIGS.txt"
+echo "*** Permissions M,U,G -> fix using $ sudo rpm --setperms -a && sudo rpm --setugids -a"
 
