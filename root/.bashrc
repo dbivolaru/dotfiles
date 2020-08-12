@@ -5,14 +5,15 @@ if [ -f /etc/bashrc ]; then
 	. /etc/bashrc
 fi
 
-# User specific aliases and functions
+[[ "$-" == *i* ]] || return 0
 
+# User specific aliases and functions
 alias rm='rm -i'
 alias cp='cp -i'
 alias mv='mv -i'
-alias ll='ls -l --color=auto --group-directories-first' 2>/dev/null
-alias l.='ls -d .* --color=auto --group-directories-first' 2>/dev/null
-alias ls='ls --color=auto --group-directories-first' 2>/dev/null
+alias ll='ls -lh --color=auto --group-directories-first' 2>/dev/null
+alias l.='ls -dh .* --color=auto --group-directories-first' 2>/dev/null
+alias ls='ls -h --color=auto --group-directories-first' 2>/dev/null
 if [[ -x "$(command -v vimx)" && -n $DISPLAY ]]; then alias vim='vimx'; fi
 
 stty -ixon

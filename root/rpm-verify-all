@@ -25,28 +25,42 @@ dnf list extras --exclude=kernel,kernel-\*
 echo "*****"
 echo "* Packages with dupes..."
 echo "*****"
-dnf repoquery --duplicated
+dnf repoquery --duplicates
+
+#echo "*****"
+#echo "* Packages for autoremove... (list only; removed in next steps; IMPORTANT NOT ALL SHOULD BE REMOVED)"
+#echo "*****"
+#dnf repoquery --unneeded
 
 echo "*****"
 echo "* Dangling symlinks (list only; removed in next steps)"
 echo "*****"
+/usr/sbin/ldconfig > /dev/null
 symlinks -r /usr | grep dangling
 
-read -rsn1 -p "Press any key to continue"; echo
+read -rsn1 -p "Press any key to continue (orphans)"; echo
 
-#echo "Prelinking..."
-#. /etc/sysconfig/prelink && /usr/sbin/prelink -av $PRELINK_OPTS >> /var/log/prelink/prelink.log 2>&1
-#/sbin/ldconfig
 
 echo "*****"
 echo "* Packages with orphans (cleanup)"
 echo "*****"
 dnf remove $(dnf repoquery --extras --exclude=kernel,kernel-\*)
 
-echo "*****"
-echo "* Dangling symlinks (cleanup)"
-echo "*****"
-symlinks -r -d /usr
+#read -rsn1 -p "Press any key to continue (autoremove)"; echo
+
+#echo "*****"
+#echo "* Packages marked for autoremove (cleanup)"
+#echo "*****"
+#dnf autoremove
+
+#read -rsn1 -p "Press any key to continue (symlinks)"; echo
+
+#echo "*****"
+#echo "* Dangling symlinks (cleanup)"
+#echo "*****"
+#symlinks -r -d /usr
+
+read -rsn1 -p "Press any key to continue"; echo
 
 echo "*****"
 echo "* Full verify..."
@@ -63,5 +77,5 @@ echo "*** /tmp/rpm-Va.txt /tmp/rpm-Va.pkgs.txt"
 echo "*** /tmp/REVIEW-CONFIGS.txt /tmp/REVIEW-CONFIGS.pkgs.txt"
 echo "*** /tmp/URGENT-REVIEW.txt /tmp/URGENT-REVIEW.pkgs.txt"
 echo "*** /tmp/REVIEW-OBSOLETE-CONFIGS.txt"
-echo "*** Permissions M,U,G -> fix using $ sudo rpm --setperms -a && sudo rpm --setugids -a"
+echo "*** Permissions M,U,G -> fix using $ sudo rpm --setugids -a && sudo rpm --setperms -a"
 
