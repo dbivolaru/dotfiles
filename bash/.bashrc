@@ -24,3 +24,6 @@ get_git_branch() {
 
 export PS1="[${USER//[[:alnum:]]*+/}@\h \W\[\033[01m\]\$(get_git_branch)\[\033[00m\]]$ "
 
+# Prevent annoying PackageKit-command-not-found messages
+unset -f command_not_found_handle
+

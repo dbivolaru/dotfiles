@@ -23,14 +23,13 @@ set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
 
 Plugin 'VundleVim/Vundle.vim'
-Plugin 'vim-airline/vim-airline'
-Plugin 'vim-airline/vim-airline-themes'
 
 " Support for G commands and []/gc keybinds
 Plugin 'tpope/vim-fugitive'
 Plugin 'tpope/vim-unimpaired'
 Plugin 'tpope/vim-commentary'
 Plugin 'tpope/vim-surround'
+Plugin 'tpope/vim-abolish'
 
 " Navigation
 Plugin 'scrooloose/nerdtree'
@@ -53,6 +52,9 @@ Plugin 'davidhalter/jedi-vim'
 Plugin 'tmhedberg/SimpylFold'
 Plugin 'plytophogy/vim-virtualenv'
 
+Plugin 'vim-airline/vim-airline'
+Plugin 'vim-airline/vim-airline-themes'
+
 call vundle#end()
 filetype plugin indent on
 
@@ -70,7 +72,9 @@ set number                      " Show line numbers
 set ruler                       " Show bottom part cursor position (ruler)
 set ttyfast                     " Terminal acceleration
 set lazyredraw                  " Don't refresh screen when doing macros
+set norelativenumber            " Faster display do not use relativenumbers
 set synmaxcol=300               " Disable syntax highlighting after 200 cols (faster)
+syntax sync minlines=300        " Maximum # of lines to read for determining syntax highlighing
 set backspace=indent,eol,start  " Make sure BS can delete indent, EOL and lines
 set scrolloff=10                " Scroll earlier by 10 lines instead of screen edge
 set wildmenu                    " Visual autocomplete for command menu
@@ -78,6 +82,10 @@ set signcolumn=yes              " Always show sign column (syntastic)
 set nosol                       " Don't change cursor column when scrolling
 set incsearch                   " Incremental search
 set complete-=i                 " No include files in completion
+
+" Command timeouts
+set notimeout ttimeout
+set ttimeoutlen=0
 
 " Horizontal scrolling, or lack thereof
 if &diff == 0
@@ -95,6 +103,8 @@ set autoindent      " Indent on next line
 set expandtab       " Expand tabs to spaces
 set smarttab        " Set tabs for shifttabs logic
 set showmatch       " Match parantheses
+set list            " Show trailing characters
+set listchars=tab:•-•,trail:•,extends:»,precedes:«
 augroup FileTypeTabHandling
   autocmd!
   au FileType sh setlocal noexpandtab
@@ -117,8 +127,11 @@ set switchbuf=useopen   " Jumping buffers when using quickfix
 set splitbelow          " Open horizontal splits down
 set splitright          " Open vertical splits to the right
 set autoread            " File changed, read it
+set ignorecase          " Searches are case insensitive by default
+set smartcase           " Case sensitive if upper letter specified
 
 " Cursor
+set nocursorcolumn  " Show no column by default
 set nocursorline    " Show no line by default - only in active win
 augroup CursorLineOnlyInActiveWindow
   autocmd!
@@ -126,18 +139,11 @@ augroup CursorLineOnlyInActiveWindow
   autocmd BufLeave,WinLeave * setlocal nocursorline
 augroup END
 
+" Auto-resize windows when vim or terminal is resized
 augroup AutoResizeWindows
   autocmd!
   au VimResized * wincmd =
 augroup END
-
-" Fast ESC keymaps
-" set ttimeout ttimeoutlen=10
-" augroup FastEscape
-"   autocmd!
-"   au InsertEnter * set timeoutlen=0
-"   au InsertLeave * set timeoutlen=1000
-" augroup END
 
 "=====================================================
 " Code folding
@@ -146,7 +152,7 @@ augroup END
 set tags^=./.git/tags;
 
 set foldmethod=syntax   " Fold based on syntax
-set foldcolumn=3        " Display 3 fold columns
+set foldcolumn=0        " Display zero (was 3) fold columns
 set foldlevel=1         " Default fold level
 set foldminlines=5      " Fold at least 5 lines
 
@@ -154,10 +160,11 @@ set foldminlines=5      " Fold at least 5 lines
 " airline settings
 "=====================================================
 
-set laststatus=2    " Always show bottom status
+set laststatus=0    " Always show bottom status
 set showtabline=2   " Always show top tabline
 set noshowmode
 set showcmd
+set shm=fimnrxoOsI
 
 " Use 256 colours (Use this setting only if your terminal supports 256 colours)
 set t_Co=256
@@ -165,7 +172,7 @@ set t_Co=256
 let g:airline_theme='powerlineish'
 let g:airline_powerline_fonts=1
 let g:airline#extensions#tabline#enabled=1
-let g:airline#extensions#tabline#formatter='unique_tail'
+let g:airline#extensions#tabline#formatter='short_home'
 let g:airline#extensions#tabline#buffer_nr_show=1
 let g:airline#extensions#tabline#show_buffers=1
 let g:airline#extensions#tabline#show_splits=0
@@ -173,17 +180,44 @@ let g:airline#extensions#tabline#show_tabs=0
 let g:airline#extensions#tabline#show_tab_nr=0
 let g:airline#extensions#tabline#show_tab_type=0
 let g:airline#extensions#tabline#show_close_button=0
-let g:airline#extensions#ctrlp#show_adjacent_modes=1
+let g:airline#extensions#ctrlp#show_adjacent_modes=0
 let g:airline#extensions#virtualenv#enabled=1
 let g:airline#extensions#ale#enabled=1
+let g:airline#extensions#tagbar#enabled=1
+au User AirlineAfterInit let g:airline_section_x=g:airline#section#create_right(['tagbar'])
+let g:airline_section_y=''
+let g:airline_section_z=g:airline#section#create(['linenr', 'maxlinenr', ':%v'])
+let g:airline_section_warning=''
+let g:airline_section_error=''
+let g:airline_skip_empty_sections=1
+let g:airline_mode_map = {
+      \ '__'     : '-',
+      \ 'c'      : 'C',
+      \ 'i'      : 'I',
+      \ 'ic'     : 'I-COMPL',
+      \ 'ix'     : 'I-COMPL',
+      \ 'n'      : 'N',
+      \ 'multi'  : 'M',
+      \ 'ni'     : '(N)',
+      \ 'no'     : 'N',
+      \ 'R'      : 'R',
+      \ 'Rv'     : 'R-VIRTUAL',
+      \ 's'      : 'S',
+      \ 'S'      : 'S-LINE',
+      \ ''     : 'S-BLOCK',
+      \ 't'      : 'T',
+      \ 'v'      : 'V',
+      \ 'V'      : 'V-LINE',
+      \ ''     : 'V-BLOCK',
+      \ }
 
 "=====================================================
 " ale syntax checking
 "=====================================================
 
 let g:ale_sign_column_always=1
-let g:ale_sign_error='EE'
-let g:ale_sign_warning='WW'
+let g:ale_sign_error=' ✘'
+let g:ale_sign_warning=' ⚠'
 
 "=====================================================
 " Other keyboard shortcuts
@@ -195,10 +229,10 @@ cnoremap w!! %!sudo tee > /dev/null %
 " Setup shortcuts at VimEnter
 function! AddOtherShortcuts()
   " Movement on big linebreak'ed lines
-  nnoremap j gj
-  nnoremap k gk
-  vnoremap j gj
-  vnoremap k gk
+  nnoremap <expr> j (v:count == 0 ? 'gj' : 'j')
+  nnoremap <expr> k (v:count == 0 ? 'gk' : 'k')
+  vnoremap <expr> j (v:count == 0 ? 'gj' : 'j')
+  vnoremap <expr> k (v:count == 0 ? 'gk' : 'k')
   nnoremap <Down> gj
   nnoremap <Up> gk
   vnoremap <Down> gj
@@ -227,7 +261,7 @@ function! AddOtherShortcuts()
   " Search word under cursor
   nnoremap <Leader>f :/\V\<<C-r>=escape(expand('<cword>'), '/\?')<CR>\>/
   nnoremap <Leader>F :/\V<C-r>=escape(expand('<cWORD>'), '/\?')<CR>/
- 
+
   " Search-replace for word under cursor
   nnoremap <Leader>h :%s/\V\<<C-r>=escape(expand('<cword>'), '/\?')<CR>\>//gc<Left><Left><Left>
   nnoremap <Leader>H :%s/\V<C-r>=escape(expand('<cWORD>'), '/\?')<CR>//gc<Left><Left><Left>
@@ -264,21 +298,19 @@ function! AddOtherShortcuts()
   nnoremap <silent> <C-s> :update<CR>
 
   " Quit shortcut to be useable with sessions - save current and quit all
-  nnoremap <silent> <S-z><S-z> :update<BAR>qa<CR>
-  nnoremap <silent> <S-z><S-q> :qa<CR>
+  nnoremap <silent> ZZ :xa!<CR>
+  nnoremap <silent> ZQ :qa!<CR>
 
-  " Buffer close but keep window
-  nnoremap <silent> <Leader>c :lclose<BAR>cclose<BAR>pclose<BAR>bp<CR>:bd#<CR>
-
-  " Delete line anywhere using Shift-Del; requires FastEscape
-  " inoremap <silent> <Esc>[3;2~ <C-\><C-o>dd
-  " nnoremap <silent> <Esc>[3;2~ dd
+  " Buffer close but keep window; if inside quickfix, just close it
+  nnoremap <silent> <Leader>c :lclose<BAR>cclose<BAR>pclose<BAR>bp<BAR>bd#<CR>
 
   " NERDTree
   nnoremap <silent> <C-n> :call NERDTreeOpenCWDClose()<CR>
 
   " Tagbar
   nnoremap <silent> <C-j> :call tagbar#ToggleWindow('fjc')<CR>
+
+  redraw!
 endfunction
 augroup OtherShortcuts
   autocmd!
@@ -287,22 +319,19 @@ augroup END
 
 " Update time stamps etc. before saving
 function! PythonFileUpdater()
-  exec 'norm mz'
   let l:view = winsaveview()
   retab " Replace tabs with spaces
   try
     exec '1,20 s/__updated__\s*=\s*''\S*''/__updated__ = '''.strftime('%Y-%m-%d').'''/i'
   catch
-    silent! exec '/__updated__/s/__updated__\s*=\s*''\S*''/__updated__ = '''.strftime('%Y-%m-%d').'''/i'
+    silent! exec '| /__updated__/s/__updated__\s*=\s*''\S*''/__updated__ = '''.strftime('%Y-%m-%d').'''/i'
   finally
-    exec 'norm `z'
-    exec 'delmarks z'
     call winrestview(l:view)
   endtry
 endfunction
 augroup AutomaticFileUpdaters
   autocmd!
-  au BufWritePre * if &ft == 'python' | call PythonFileUpdater() | endif
+  au BufWritePre * if &ft == 'python' | try | undojoin | call PythonFileUpdater() | catch /^Vim\%((\a\+)\)\=:E790/ | endtry | endif
 augroup END
 
 "=====================================================
