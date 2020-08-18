@@ -310,6 +310,9 @@ function! AddOtherShortcuts()
   " Tagbar
   nnoremap <silent> <C-j> :call tagbar#ToggleWindow('fjc')<CR>
 
+  " Fugitive
+  nnoremap <silent> <Leader>gg :G<CR>
+
   redraw!
 endfunction
 augroup OtherShortcuts
@@ -398,6 +401,7 @@ let g:jedi#popup_on_dot=0 " This seems too laggy, so we disable
 let g:jedi#popup_select_first=1 " Saves one key strokei
 let g:jedi#show_call_signatures=0 " This seems too lagy, so we disable
 let g:jedi#show_call_signatures_delay=0 " Show signature immediately
+let g:jedi#goto_assignments_command = "<leader>a"
 
 " Call signature scan get quite slow with big libraries like pandas
 " autocmd FileType python call jedi#configure_call_signatures()
