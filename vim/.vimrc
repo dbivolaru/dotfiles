@@ -15,6 +15,9 @@ endif
 " Be iMproved
 set nocompatible
 
+" Use 256 colours (Use this setting only if your terminal supports 256 colours)
+set t_Co=256
+
 "=====================================================
 " Vundle settings
 "=====================================================
@@ -113,12 +116,14 @@ augroup FileTypeTabHandling
   au FileType qf wincmd J
 augroup END
 
-" Backup / swap files
+" Backup / swap files / grep
 set nobackup            " No backup files
 set nowritebackup       " No backup while editing
 set noswapfile          " No swap files
 set modelines=0         " No modelines
 set nomodeline          " No modelines, again
+set wildignore+=*/__pycache__/*,*/venv/*,*/build/*,*/dist/*,*/.git/*,*/*.log,*.ipynb,*.pyc*
+let &grepprg='rg --vimgrep --smart-case -g "!*.{log,ipynb}"'
 
 " Buffers / windows
 set hidden              " When switching buffers, don't save or ask anything
@@ -166,9 +171,6 @@ set noshowmode
 set showcmd
 set shm=fimnrxoOsI
 
-" Use 256 colours (Use this setting only if your terminal supports 256 colours)
-set t_Co=256
-
 let g:airline_theme='powerlineish'
 let g:airline_powerline_fonts=1
 let g:airline#extensions#tabline#enabled=1
@@ -187,8 +189,6 @@ let g:airline#extensions#tagbar#enabled=1
 au User AirlineAfterInit let g:airline_section_x=g:airline#section#create_right(['tagbar'])
 let g:airline_section_y=''
 let g:airline_section_z=g:airline#section#create(['linenr', 'maxlinenr', ':%v'])
-let g:airline_section_warning=''
-let g:airline_section_error=''
 let g:airline_skip_empty_sections=1
 let g:airline_mode_map = {
       \ '__'     : '-',
@@ -259,20 +259,26 @@ function! AddOtherShortcuts()
   inoremap <C-r> <C-g>u<C-r>
 
   " Search word under cursor
-  nnoremap <Leader>f :/\V\<<C-r>=escape(expand('<cword>'), '/\?')<CR>\>/
-  nnoremap <Leader>F :/\V<C-r>=escape(expand('<cWORD>'), '/\?')<CR>/
+  nnoremap <Leader>f /\V\<<C-r>=escape(expand('<cword>'), '/\?')<CR>\>
+  nnoremap <Leader>F /\V<C-r>=escape(expand('<cWORD>'), '/\?')<CR>
+
+  " Search selected text in visual mode
+  vnoremap * y/\V<C-r>=escape(@", '/\?')<CR>
+  vnoremap # y?\V<C-r>=escape(@", '/\?')<CR>
 
   " Search-replace for word under cursor
   nnoremap <Leader>h :%s/\V\<<C-r>=escape(expand('<cword>'), '/\?')<CR>\>//gc<Left><Left><Left>
   nnoremap <Leader>H :%s/\V<C-r>=escape(expand('<cWORD>'), '/\?')<CR>//gc<Left><Left><Left>
 
   " Find in files (needs vim-fugitive for git_dir function)
-  nnoremap <Leader>gf :cexpr []<BAR>silent! execute "grep! -srnw --binary-files=without-match --exclude-dir=.git
+  nnoremap <Leader>gf :cexpr[]<BAR>silent! execute "grep!
                 \ <C-r>=shellescape(fnamemodify(get(b:, 'git_dir', '.'), ':h'))<CR>
-                \ -e <C-r>=shellescape(expand('<cword>'))<CR>"<BAR>cwindow<BAR>redraw!<S-Left>
-  nnoremap <Leader>gF :cexpr []<BAR>silent! execute "grep! -srn --binary-files=without-match --exclude-dir=.git
+                \ -we <C-r>=shellescape(expand('<cword>'))<CR>
+                \ "<BAR>cwindow<BAR>redraw!<S-Left><Left><Left>
+  nnoremap <Leader>gF :cexpr[]<BAR>silent! execute "grep!
                 \ <C-r>=shellescape(fnamemodify(get(b:, 'git_dir', '.'), ':h'))<CR>
-                \ -e <C-r>=shellescape(expand('<cWORD>'))<CR>"<BAR>cwindow<BAR>redraw!<S-Left>
+                \ -e <C-r>=shellescape(expand('<cWORD>'))<CR>
+                \ "<BAR>cwindow<BAR>redraw!<S-Left><Left><Left>
 
   " Replace in qf found files with \gf or \gF
   nnoremap <Leader>gh :cdo %s/\V\<<C-r>=escape(expand('<cword>'), '/\?')<CR>\>//gc<Left><Left><Left>
@@ -282,8 +288,8 @@ function! AddOtherShortcuts()
   nnoremap <silent> // :nohlsearch<CR>
 
   " Find tags in files (needs vim-fugitive for git_dir function)
-  nnoremap <Leader>t :cexpr []<BAR>vimgrep! /\C\vTODO\|FIXME/j % <BAR>cwindow<CR>
-  nnoremap <Leader>gt :cexpr []<BAR>silent! execute "grep! -srnE --binary-files=without-match --exclude-dir=.git
+  nnoremap <Leader>t :cexpr[]<BAR>vimgrep! /\C\vTODO\|FIXME/j % <BAR>cwindow<CR>
+  nnoremap <Leader>gt :cexpr[]<BAR>silent! execute "grep!
                 \ <C-r>=shellescape(fnamemodify(get(b:, 'git_dir', '.'), ':h'))<CR>
                 \ -e 'TODO\\<BAR>FIXME'"<BAR>cwindow<BAR>redraw!<CR>
 
@@ -296,6 +302,10 @@ function! AddOtherShortcuts()
   " Save anywhere (remember to do stty -ixon in bashrc)
   inoremap <silent> <C-s> <C-\><C-o>:update<CR>
   nnoremap <silent> <C-s> :update<CR>
+
+  " Default vim action is to close the preview only; do the rest as well
+  nnoremap <silent> <C-w>z :lclose<BAR>cclose<BAR>pclose<CR>
+  nnoremap <silent> <C-w><C-z> :lclose<BAR>cclose<BAR>pclose<CR>
 
   " Quit shortcut to be useable with sessions - save current and quit all
   nnoremap <silent> ZZ :xa!<CR>
@@ -312,6 +322,9 @@ function! AddOtherShortcuts()
 
   " Fugitive
   nnoremap <silent> <Leader>gg :G<CR>
+
+  " Edit this file
+  nnoremap <silent> <Leader>v :e $MYVIMRC<CR>
 
   redraw!
 endfunction
@@ -428,3 +441,16 @@ let g:tagbar_zoomwidth = 60 " Bigger window size
 let g:tagbar_compact = 1 " Don't show help ? info
 let g:tagbar_autoshowtag = 1 " Expand folds to show current tag
 
+"=====================================================
+" Faster background clearing
+"=====================================================
+
+if has('gui_running') || has('nvim') 
+  hi Normal guifg=#f8f8f2 guibg=#272822
+else
+  " Set the terminal default background and foreground colors, thereby
+  " improving performance by not needing to set these colors on empty cells.
+  hi Normal guifg=NONE guibg=NONE ctermfg=NONE ctermbg=NONE
+  let &t_ti = &t_ti . "\033]10;#f8f8f2\007\033]11;#272822\007"
+  let &t_te = &t_te . "\033]110\007\033]111\007"
+endif

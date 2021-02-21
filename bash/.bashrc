@@ -11,12 +11,16 @@ fi
 alias ll='ls -lh --color=auto --group-directories-first' 2>/dev/null
 alias l.='ls -dh .* --color=auto --group-directories-first' 2>/dev/null
 alias ls='ls -h --color=auto --group-directories-first' 2>/dev/null
-if [[ -x "$(command -v vimx)" && -n $DISPLAY ]]; then alias vim='vimx'; fi
+if [[ -x "$(command -v vimx)" && -n $DISPLAY ]]; then
+	alias vim='vimx'
+	export EDITOR='vimx'
+else
+	export EDITOR='vim'
+fi
+export VIMRUNTIME="$($EDITOR --version | awk ' /f-b/ { gsub(/["]/,"",$NF); print $NF }')"
 
 stty -ixon
 shopt -s histappend
-
-export EDITOR='vim'
 
 get_git_branch() {
 	# If no powerline fonts use ⎇ instead of 
