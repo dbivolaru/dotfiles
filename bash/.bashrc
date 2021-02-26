@@ -11,6 +11,7 @@ fi
 alias ll='ls -lh --color=auto --group-directories-first' 2>/dev/null
 alias l.='ls -dh .* --color=auto --group-directories-first' 2>/dev/null
 alias ls='ls -h --color=auto --group-directories-first' 2>/dev/null
+alias ssh='TERM="xterm-256color" ssh -x'
 if [[ -x "$(command -v vimx)" && -n $DISPLAY ]]; then
 	alias vim='vimx'
 	export EDITOR='vimx'
