@@ -1,2 +1,51 @@
+$include /etc/inputrc
+
 set colored-stats on
 set blink-matching-paren on
+set visible-stats on
+"\e\e":
+
+# Navigation
+## M-b and M-f move to whitespace instead of /
+"\eb": shell-backward-word
+"\ef": shell-forward-word
+
+## M-RightArrow has legacy functionality
+"\e[1;3C": forward-word
+
+## C-RightArrow has legacy functionality
+"\e[1;5C": forward-word
+
+## M-LeftArrow has legacy functionality
+"\e[1;3D": backward-word
+
+## C-LeftArrow has legacy functionality
+"\e[1;5D": backward-word
+
+# Kill Ring
+## M-d and M-Rubout kills to whitespace instead of /
+"\ed": shell-kill-word
+"\e\C-?": shell-backward-kill-word
+
+## Ctrl-Delete has legacy functionality
+"\e[3;5~": kill-word
+
+## M-C-h has legacy functionality
+"\e\C-h": backward-kill-word
+
+# Transpose
+## M-t transposes unix bounded words instead of /
+"\et": "\e\C-?\eb\C-y\e\\ \ef"
+
+## C-x t has legacy functionality
+"\C-xt": transpose-words
+
+# Quoting
+## M-' quotes text; use marks to prevent issues with existing quotes
+# "\e\'": "\C-@\eb\eOC\'\C-x\C-x\'"
+"\e\'": "\C-w\'\C-y\'"
+
+## M-" quotes text
+# "\e\"": "\C-@\eb\eOC\"\C-x\C-x\""
+"\e\"": "\C-w\"\C-y\""
+
