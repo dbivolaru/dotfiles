@@ -140,14 +140,26 @@ set nocursorcolumn  " Show no column by default
 set nocursorline    " Show no line by default - only in active win
 augroup CursorLineOnlyInActiveWindow
   autocmd!
-  autocmd VimEnter,BufEnter,WinEnter * setlocal cursorline
-  autocmd BufLeave,WinLeave * setlocal nocursorline
+  au VimEnter,BufEnter,WinEnter * setlocal cursorline
+  au BufLeave,WinLeave * setlocal nocursorline
 augroup END
 
 " Auto-resize windows when vim or terminal is resized
 augroup AutoResizeWindows
   autocmd!
   au VimResized * wincmd =
+augroup END
+
+" When saving in hex mode, ensure to convert to xxd first
+augroup HexMode
+  autocmd!
+  au BufWritePre *
+      \ if exists('b:xxd_mode') && b:xxd_mode == 1 | let b:xxd_view = winsaveview() |
+      \ silent! exe '%!xxd -r' | endif
+  au BufWritePost *
+      \ if exists('b:xxd_mode') && b:xxd_mode == 1 | let b:xxd_modified = &modified |
+      \ silent! exe '%!xxd -g 1' | let &modified = b:xxd_modified | unlet b:xxd_modified |
+      \ call winrestview(b:xxd_view) | unlet b:xxd_view | endif
 augroup END
 
 "=====================================================
@@ -186,9 +198,9 @@ let g:airline#extensions#ctrlp#show_adjacent_modes=0
 let g:airline#extensions#virtualenv#enabled=1
 let g:airline#extensions#ale#enabled=1
 let g:airline#extensions#tagbar#enabled=1
-au User AirlineAfterInit let g:airline_section_x=g:airline#section#create_right(['tagbar'])
-let g:airline_section_y=''
-let g:airline_section_z=g:airline#section#create(['linenr', 'maxlinenr', ':%v'])
+au User AirlineAfterInit let g:airline_section_x=g:airline#section#create_right(['filetype'])
+au User AirlineAfterInit let g:airline_section_y=g:airline#section#create_right(['bookmark', 'tagbar', 'vista', 'gutentags', 'gen_tags', 'omnisharp', 'grepper'])
+au User AirlineAfterInit let g:airline_section_z=g:airline#section#create(['linenr', 'maxlinenr', ':%v'])
 let g:airline_skip_empty_sections=1
 let g:airline_mode_map = {
       \ '__'     : '-',
@@ -265,10 +277,12 @@ function! AddOtherShortcuts()
   " Search selected text in visual mode
   vnoremap * y/\V<C-r>=escape(@", '/\?')<CR>
   vnoremap # y?\V<C-r>=escape(@", '/\?')<CR>
+  vnoremap <Leader>f ygv/\V<C-r>=escape(@", '/\?')<CR>
 
   " Search-replace for word under cursor
   nnoremap <Leader>h :%s/\V\<<C-r>=escape(expand('<cword>'), '/\?')<CR>\>//gc<Left><Left><Left>
   nnoremap <Leader>H :%s/\V<C-r>=escape(expand('<cWORD>'), '/\?')<CR>//gc<Left><Left><Left>
+  vnoremap <Leader>h ygv:%s/\V<C-r>=escape(@", '/\?')<CR>//gc<Left><Left><Left>
 
   " Find in files (needs vim-fugitive for git_dir function)
   nnoremap <Leader>gf :cexpr[]<BAR>silent! execute "grep!
@@ -279,10 +293,15 @@ function! AddOtherShortcuts()
                 \ <C-r>=shellescape(fnamemodify(get(b:, 'git_dir', '.'), ':h'))<CR>
                 \ -e <C-r>=shellescape(expand('<cWORD>'))<CR>
                 \ "<BAR>cwindow<BAR>redraw!<S-Left><Left><Left>
+  vnoremap <Leader>gf ygv:cexpr[]<BAR>silent! execute "grep!
+                \ <C-r>=shellescape(fnamemodify(get(b:, 'git_dir', '.'), ':h'))<CR>
+                \ -we <C-r>=shellescape(@")<CR>
+                \ "<BAR>cwindow<BAR>redraw!<S-Left><Left><Left>
 
   " Replace in qf found files with \gf or \gF
   nnoremap <Leader>gh :cdo %s/\V\<<C-r>=escape(expand('<cword>'), '/\?')<CR>\>//gc<Left><Left><Left>
   nnoremap <Leader>gH :cdo %s/\V<C-r>=escape(expand('<cWORD>'), '/\?')<CR>//gc<Left><Left><Left>
+  vnoremap <Leader>gh ygv:cdo %s/\V<C-r>=escape(@", '/\?')<CR>//gc<Left><Left><Left>
 
   " Clear search highlighting
   nnoremap <silent> // :nohlsearch<CR>
@@ -325,6 +344,21 @@ function! AddOtherShortcuts()
 
   " Edit this file
   nnoremap <silent> <Leader>v :e $MYVIMRC<CR>
+  nnoremap <silent> <Leader>V :source $MYVIMRC<CR>
+
+  " Hex mode
+  nnoremap <silent> <Leader>x :if exists('b:xxd_mode') && b:xxd_mode == 1<BAR>
+                \ echo "Already in hex mode!"<BAR>else<BAR>setlocal binary<BAR>
+                \ edit!<BAR>let b:xxd_prev_ft = &ft<BAR>let b:xxd_modified = &modified<BAR>
+                \ silent! exe '%!xxd -g 1'<BAR>
+                \ let &modified = b:xxd_modified<BAR>unlet b:xxd_modified<BAR>
+                \ let b:xxd_mode = 1<BAR>setlocal ft=xxd<BAR>endif<CR>
+  nnoremap <silent> <Leader>X :if exists('b:xxd_mode') && b:xxd_mode == 1<BAR>
+                \ let &l:ft = b:xxd_prev_ft<BAR>let b:xxd_modified = &modified<BAR>
+                \ silent! exe '%!xxd -r'<BAR>
+                \ let &modified = b:xxd_modified<BAR>unlet b:xxd_modified<BAR>
+                \ let b:xxd_mode = 0<BAR>file<BAR>
+                \ else<BAR>echo "Not in hex mode!"<BAR>endif<CR>
 
   redraw!
 endfunction

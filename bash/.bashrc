@@ -11,11 +11,21 @@ fi
 alias ll='ls -lh --color=auto --group-directories-first' 2>/dev/null
 alias l.='ls -dh .* --color=auto --group-directories-first' 2>/dev/null
 alias ls='ls -h --color=auto --group-directories-first' 2>/dev/null
+
+if [[ -x "$(command -v colordiff)" ]]; then
+	bindiff() { colordiff <(xxd -g 1 "$1") <(xxd -g 1 "$2") "${@:3}"; }
+else
+	bindiff() { diff <(xxd -g 1 "$1") <(xxd -g 1 "$2") "${@:3}"; }
+fi
+
 alias ssh='TERM="xterm-256color" ssh -x'
+
 if [[ -x "$(command -v vimx)" && -n $DISPLAY ]]; then
+	alias vi='vimx'
 	alias vim='vimx'
 	export EDITOR='vimx'
 else
+	alias vi='vim'
 	export EDITOR='vim'
 fi
 export VIMRUNTIME="$($EDITOR --version | awk ' /f-b/ { gsub(/["]/,"",$NF); print $NF }')"
