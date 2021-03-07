@@ -3,6 +3,8 @@ $include /etc/inputrc
 set colored-stats on
 set blink-matching-paren on
 set visible-stats on
+
+# Unmap double escape so we are faster
 "\e\e":
 
 # Navigation
@@ -42,10 +44,8 @@ set visible-stats on
 
 # Quoting
 ## M-' quotes text; use marks to prevent issues with existing quotes
-# "\e\'": "\C-@\eb\eOC\'\C-x\C-x\'"
-"\e\'": "\C-w\'\C-y\'"
+"\e\'": "\C-w\'\C-y\e\\\' "
 
 ## M-" quotes text
-# "\e\"": "\C-@\eb\eOC\"\C-x\C-x\""
-"\e\"": "\C-w\"\C-y\""
+"\e\"": "\C-w\"\C-y\e\\\" "
 

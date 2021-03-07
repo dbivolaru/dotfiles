@@ -30,7 +30,6 @@ else
 fi
 export VIMRUNTIME="$($EDITOR --version | awk ' /f-b/ { gsub(/["]/,"",$NF); print $NF }')"
 
-stty -ixon
 shopt -s histappend
 
 get_git_branch() {

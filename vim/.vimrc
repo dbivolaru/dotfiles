@@ -138,6 +138,7 @@ set smartcase           " Case sensitive if upper letter specified
 " Cursor
 set nocursorcolumn  " Show no column by default
 set nocursorline    " Show no line by default - only in active win
+
 augroup CursorLineOnlyInActiveWindow
   autocmd!
   au VimEnter,BufEnter,WinEnter * setlocal cursorline
@@ -318,7 +319,8 @@ function! AddOtherShortcuts()
   " Buffer show
   nnoremap <Leader>b :ls<CR>:b<Space>
 
-  " Save anywhere (remember to do stty -ixon in bashrc)
+  " Save anywhere
+  silent !stty -ixon
   inoremap <silent> <C-s> <C-\><C-o>:update<CR>
   nnoremap <silent> <C-s> :update<CR>
 
@@ -362,9 +364,11 @@ function! AddOtherShortcuts()
 
   redraw!
 endfunction
+
 augroup OtherShortcuts
   autocmd!
-  au VimEnter * call AddOtherShortcuts()
+  au VimEnter * let g:stty_save = system('stty --save') | call AddOtherShortcuts()
+  au VimLeave * silent! exe '!stty' shellescape(g:stty_save)
 augroup END
 
 " Update time stamps etc. before saving
@@ -379,6 +383,7 @@ function! PythonFileUpdater()
     call winrestview(l:view)
   endtry
 endfunction
+
 augroup AutomaticFileUpdaters
   autocmd!
   au BufWritePre * if &ft == 'python' | try | undojoin | call PythonFileUpdater() | catch /^Vim\%((\a\+)\)\=:E790/ | endtry | endif
