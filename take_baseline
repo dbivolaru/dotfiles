@@ -1,0 +1,6 @@
+#!/bin/sh
+cp ~/.inputrc ./bash/.inputrc
+cp ~/.bashrc ./bash/.bashrc
+cp ~/.dir_colors ./bash/.dir_colors
+cp ~/.vimrc ./vim/.vimrc
+cp ~/.config/kitty/kitty.conf ./kitty/kitty.conf

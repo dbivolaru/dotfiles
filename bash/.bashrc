@@ -11,6 +11,7 @@ fi
 alias ll='ls -lh --color=auto --group-directories-first' 2>/dev/null
 alias l.='ls -dh .* --color=auto --group-directories-first' 2>/dev/null
 alias ls='ls -h --color=auto --group-directories-first' 2>/dev/null
+alias diff='diff --color=auto -ud'
 
 if [[ -x "$(command -v colordiff)" ]]; then
 	bindiff() { colordiff <(xxd -g 1 "$1") <(xxd -g 1 "$2") "${@:3}"; }

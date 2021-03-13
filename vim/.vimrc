@@ -237,7 +237,18 @@ let g:ale_sign_warning=' ⚠'
 "=====================================================
 
 " If we forgot to sudo before an edit, then this allows to use w!! to save it
-cnoremap w!! %!sudo tee > /dev/null %
+function! SudoSave()
+  if &modified
+    let l:view = winsaveview()
+    redraw!
+    silent exe '%!sudo tee > /dev/null %'
+    set nomodified
+    edit
+    call winrestview(l:view)
+    redraw!
+  endif
+endfunction
+cnoremap w!! call SudoSave()
 
 " Setup shortcuts at VimEnter
 function! AddOtherShortcuts()
@@ -333,7 +344,7 @@ function! AddOtherShortcuts()
   nnoremap <silent> ZQ :qa!<CR>
 
   " Buffer close but keep window; if inside quickfix, just close it
-  nnoremap <silent> <Leader>c :lclose<BAR>cclose<BAR>pclose<BAR>bp<BAR>bd#<CR>
+  nnoremap <silent> <Leader>c :lclose<BAR>cclose<BAR>pclose<BAR>b#<BAR>bd#<CR>
 
   " NERDTree
   nnoremap <silent> <C-n> :call NERDTreeOpenCWDClose()<CR>
