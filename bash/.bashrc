@@ -37,21 +37,33 @@ get_git_branch() {
 get_venv() {
 	if [ -n "$VIRTUAL_ENV" ]; then
 		# Alternate symbols: 🐍
-		echo -n " 🐍${VIRTUAL_ENV##*/}"
-	else
-		echo -n ""
+		printf ' 🐍%s' "${VIRTUAL_ENV##*/}"
 	fi
 }
 
 long_venv_prompt() {
 	if [ -n "$VIRTUAL_ENV" ]; then
-		printf "\n$ "
+		printf '\n$ '
 	else
-		printf "$ "
+		printf '$ '
 	fi
 }
 
-export PS1="[\u@\h:\j \W\[\e[01m\]\$(get_git_branch)\$(get_venv)\[\e[00m\]]\$(long_venv_prompt)"
+get_jobs() {
+	local j='\j'
+	local jj="${j@P}"
+	if [ "$jj" -gt 0 ]; then
+		printf ' ⏳%s' "$jj"
+	fi
+}
+
+get_ssh() {
+	if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
+		printf ' 💻'
+	fi
+}
+
+export PS1="[\u@\h\$(get_ssh) \W\[\e[01m\]\$(get_jobs)\$(get_git_branch)\$(get_venv)\[\e[00m\]]\$(long_venv_prompt)"
 export VIRTUAL_ENV_DISABLE_PROMPT=1
 
 case "$TERM" in
@@ -63,12 +75,11 @@ case "$TERM" in
 		}
 
 		postexec() {
-			STARTTIME=$(HISTTIMEFORMAT='%s ' history 1 | awk '{print $2}');
+			STARTTIME=$(HISTTIMEFORMAT='%s ' history 1 | awk '{print $2}')
 		}
 
 		precmd() {
-			local st=$(HISTTIMEFORMAT='%s ' history 1 | awk '{print $2}');
-			printf 'st=%d STARTTIME=%d\n' "$st" "$STARTTIME";
+			local st=$(HISTTIMEFORMAT='%s ' history 1 | awk '{print $2}')
 			if [[ -z "$STARTTIME" || (-n "$STARTTIME" && "$STARTTIME" -ne "$st") ]]; then
 				ENDTIME=$EPOCHSECONDS
 				STARTTIME=$st
@@ -79,53 +90,53 @@ case "$TERM" in
 
 		# Notify OS of local folder URL
 		__vte_osc7() {
-			printf '\e]7;file://%s%s\e\\' "${HOSTNAME}" "$(/usr/libexec/vte-urlencode-cwd)";
+			printf '\e]7;file://%s%s\e\\' "${HOSTNAME}" "$(/usr/libexec/vte-urlencode-cwd)"
 		}
 
 		# Notify kitty when command completes (similar styling as OSC 777 on gnome-terminal)
 		# Parameters: $1 = command
 		# Workaround: we use postexec as preexec runs inside a subshell
 		__vte_osc99() {
-			precmd;
-			# postexec;
+			precmd
+			# postexec
 			if ((ENDTIME - STARTTIME >= 5)); then
-				printf '\e]99;d=0:p=title;Command completed\e\\';
-				printf '\e]99;d=1:p=body;%s\e\\' "$1";
+				printf '\e]99;d=0:p=title;Command completed\e\\'
+				printf '\e]99;d=1:p=body;%s\e\\' "$1"
 			fi
 		}
 
 		# For timing how long a command took to run
 		__vte_osc99pre() {
-			preexec;
+			preexec
 		}
 
 		# Notify urxvt and gnome-terminal (for non-kitty usage)
 		# Parameters: $1 = command
 		__vte_osc777() {
-			printf '\e]777;notify;Command completed;%s\e\\' "$1";
-			printf '\e]777;precmd\e\\';
+			printf '\e]777;notify;Command completed;%s\e\\' "$1"
+			printf '\e]777;precmd\e\\'
 		}
 
 		# For timing how long a command took to run
 		__vte_osc777pre() {
-			printf '\e]777;preexec\e\\';
+			printf '\e]777;preexec\e\\'
 		}
 
 		# Set title using OSC 0
 		# Parameters: $1 = user, $2 = hostname, $3 = pwd
 		__vte_osc0() {
-			printf '\e]0;%s@%s:%s\e\\' "$1" "$2" "$3";
+			printf '\e]0;%s@%s:%s\e\\' "$1" "$2" "$3"
 		}
 
 		__vte_prompt_command() {
-			local command=$(HISTTIMEFORMAT= history 1 | sed 's/^ *[0-9]\+ *//');
-			local pwd='~';
-			[ "$PWD" != "$HOME" ] && pwd=${PWD/#$HOME\//\~\/};
-			pwd="${pwd//[[:cntrl:]]}";
-			__vte_osc0 "${USER}" "${HOSTNAME%%.*}" "${pwd}";
-			__vte_osc777 "${command//;/ }";
-			__vte_osc99 "${command//[[:cntrl:]]}";
-			__vte_osc7;
+			local command=$(HISTTIMEFORMAT= history 1 | sed 's/^ *[0-9]\+ *//')
+			local pwd='~'
+			[ "$PWD" != "$HOME" ] && pwd=${PWD/#$HOME\//\~\/}
+			pwd="${pwd//[[:cntrl:]]}"
+			__vte_osc0 "${USER}" "${HOSTNAME%%.*}" "${pwd}"
+			__vte_osc777 "${command//;/ }"
+			__vte_osc99 "${command//[[:cntrl:]]}"
+			__vte_osc7
 		}
 
 		export PS0=$(__vte_osc777pre;__vte_osc99pre)
