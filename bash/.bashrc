@@ -99,7 +99,7 @@ case "$TERM" in
 		__vte_osc99() {
 			precmd
 			# postexec
-			if ((ENDTIME - STARTTIME >= 5)); then
+			if ((ENDTIME - STARTTIME >= 30)); then
 				printf '\e]99;d=0:p=title;Command completed\e\\'
 				printf '\e]99;d=1:p=body;%s\e\\' "$1"
 			fi
