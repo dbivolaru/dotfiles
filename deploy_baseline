@@ -1,0 +1,9 @@
+#!/bin/sh
+set -e
+
+DCONF="$(command -v dconf)"
+[ ! -x "$DCONF" ] && sudo dnf install dconf
+[ ! -x "$DCONF" ] && exit 1
+
+$DCONF load ./gnome/dconf_dump
+
