@@ -10,7 +10,7 @@ fi
 
 ################################################################################
 echo "*** Installing system utilities"
-dnf install -y \
+dnf install -y --allowerasing \
 	mc vim vim-X11 vim-default-editor ctags kitty xterm colordiff meld \
 	smartmontools htop dnfdragora gnome-tweak-tool dconf-editor \
 	curl cabextract \
@@ -51,23 +51,23 @@ dnf install -y zeromq czmq python3-zmq
 
 ################################################################################
 echo "*** Installing PostrgreSQL..."
+rpm -ihv https://ftp.postgresql.org/pub/pgadmin/pgadmin4/yum/pgadmin4-fedora-repo-1-1.noarch.rpm
 dnf install -y postgresql postgresql-server postgresql-contrib postgresql-upgrade \
 	postgresql-jdbc postgresql-plpython3 python3-psycopg2 \
 	pgadmin4 pgadmin4-desktop
 
 ################################################################################
 echo "*** Installing Google Chrome..."
-FILE=/etc/yum.repos.d/google-chrome.repo
-if [ -f "$FILE" ]; then
-	cat <<- EOF > $FILE
-	[google-chrome]
-	name=google-chrome - \$basearch
-	baseurl=http://dl.google.com/linux/chrome/rpm/stable/\$basearch
-	enabled=1
-	gpgcheck=1
-	gpgkey=https://dl-ssl.google.com/linux/linux_signing_key.pub
-	EOF
-fi
-
+dnf install fedora-workstation-repositories
+dnf config-manager --set-enabled google-chrome
 dnf install -y google-chrome-stable
+
+################################################################################
+echo "*** Installing rpmfusion..."
+dnf install https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
+dnf install https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
+
+################################################################################
+echo "*** Cleanup..."
+dnf copr remove copr.fedorainfracloud.org/phracek/PyCharm
 
