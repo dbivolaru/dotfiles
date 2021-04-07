@@ -11,7 +11,7 @@ fi
 ################################################################################
 echo "*** Installing system utilities"
 dnf install -y --allowerasing \
-	mc vim vim-X11 vim-default-editor ctags kitty xterm fish sshfs colordiff meld \
+	mc vim vim-X11 vim-default-editor ctags ripgrep kitty xterm fish sshfs colordiff meld \
 	imwheel \
 	bsd-games cmatrix \
 	smartmontools htop dnfdragora gnome-tweak-tool dconf-editor \
@@ -87,3 +87,5 @@ dnf install gtk-murrine-engine
 echo "/usr/lib64/gtk-3.0/modules/" > /etc/ld.so.conf.d/pk-gtk.conf
 ldconfig
 
+# Replace resolved stub with actual config
+ln -sfv /run/systemd/resolve/resolv.conf /etc/resolv.conf

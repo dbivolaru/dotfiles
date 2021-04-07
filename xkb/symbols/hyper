@@ -1,0 +1,27 @@
+partial alphanumeric_keys modifier_keys
+xkb_symbols "lwin" {
+    replace key <META> { [ Meta_L, Meta_L ] };
+    replace key <LWIN> { [ Meta_L, Meta_L ] };
+    modifier_map Mod1 { <META>, <LWIN> };
+};
+
+partial alphanumeric_keys modifier_keys
+xkb_symbols "ralt" {
+    replace key <HYPR> { [ Hyper_R, Hyper_R ] };
+    replace key <RALT> { [ Hyper_R, Hyper_R ] };
+    modifier_map Mod3 { <HYPR>, <RALT> };
+};
+
+partial alphanumeric_keys modifier_keys
+xkb_symbols "rwin" {
+    replace key <HYPR> { [ Hyper_R, Hyper_R ] };
+    replace key <RWIN> { [ Hyper_R, Hyper_R ] };
+    modifier_map Mod3 { <HYPR>, <RWIN> };
+};
+
+partial alphanumeric_keys modifier_keys
+xkb_symbols "rctl" {
+    replace key <HYPR> { [ Hyper_R, Hyper_R ] };
+    replace key <RCTL> { [ Hyper_R, Hyper_R ] };
+    modifier_map Mod3 { <HYPR>, <RCTL> };
+};

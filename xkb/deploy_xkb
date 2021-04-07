@@ -1,0 +1,5 @@
+#!/bin/sh
+
+cp -r ./symbols/hyper /usr/share/X11/xkb/symbols/
+cp -r ./rules/evdev* /usr/share/X11/xkb/rules/
+
