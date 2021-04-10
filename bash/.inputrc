@@ -1,28 +1,141 @@
-$include /etc/inputrc
+$include  /etc/inputrc
 
+# Preferences
 set colored-stats on
 set blink-matching-paren on
 set visible-stats on
+set mark-symlinked-directories on
+set show-all-if-ambiguous on
+set page-completions off
+set comment-begin "# "
+$if version>=7.0
+set enable-bracketed-paste on
+$endif
 
-# Unmap double escape so we are faster
+# Display vi mode
+set show-mode-in-prompt on
+set emacs-mode-string ""
+$if term=xterm-256color
+set vi-cmd-mode-string "\1\e[48;5;190m\e[38;5;17m N \e[38;5;190m\e[48;5;0m\e[0m\2"
+set vi-ins-mode-string "\1\e[48;5;45m\e[38;5;17m I \e[38;5;45m\e[48;5;0m\e[0m\2"
+$else
+$if term=xterm-kitty
+set vi-cmd-mode-string "\1\e[48;5;190m\e[38;5;17m N \e[38;5;190m\e[48;5;0m\e[0m\2"
+set vi-ins-mode-string "\1\e[48;5;45m\e[38;5;17m I \e[38;5;45m\e[48;5;0m\e[0m\2"
+$else
+set vi-cmd-mode-string "\1<N>\2"
+set vi-ins-mode-string "\1<I>\2"
+$endif
+$endif
+
+# Handle meta key properly
+set convert-meta off
+set enable-meta-key on
+set input-meta on
+set meta-flag on
+set output-meta on
+
+# Put keypad in app mode
+set enable-keypad on
+
+# Unmap double escape and handle CSI and SS3 terminal escape sequences
 "\e\e":
+"\e[": skip-csi-sequence
+"\eO": skip-csi-sequence
+
+$if mode=emacs
+# Nav Cluster
+## Home moves to beginning of line
+### freebsd and vte
+"\e[H": beginning-of-line
+### non-RH/Debian xterm and vte in keypad app mode
+"\eOH": beginning-of-line
+### linux console and RH/Debian xterm
+"\e[1~": beginning-of-line
+### rxvt
+"\e[7~": beginning-of-line
+
+## End moves to end of line
+### freebsd and vte
+"\e[F": end-of-line
+### non-RH/Debian xterm and vte in keypad app mode
+"\eOF": end-of-line
+### linux console and RH/Debian xterm
+"\e[4~": end-of-line
+### rxvt
+"\e[8~": end-of-line
+
+## PgUp and PgDn search backward and forward
+"\e[5~": history-search-backward
+"\e[6~": history-search-forward
+
+## Insert key switches to overwrite mode
+"\e[2~": overwrite-mode
+
+## Delete key actually deletes
+"\e[3~": delete-char
+
+## M-RightArrow has legacy functionality
+### freebsd and vte
+"\e[1;3C": forward-word
+### MacOS
+"\e[3C": forward-word
+
+## C-RightArrow has legacy functionality
+### freebsd and vte
+"\e[1;5C": forward-word
+### rxvt
+"\eOc": forward-word
+### MacOS
+"\e[5C": forward-word
+
+## M-LeftArrow has legacy functionality
+### freebsd and vte
+"\e[1;3D": backward-word
+### MacOS
+"\e[3D": backward-word
+
+## C-LeftArrow has legacy functionality
+### freebsd and vte
+"\e[1;5D": backward-word
+### rxvt
+"\eOd": backward-word
+### MacOS
+"\e[5D": backward-word
+
+# Keypad
+## KP Enter works as expected
+"\eOM": accept-line
+
+## KP keys in Sun mode work as expected
+"\eOo": "/"
+"\eOj": "*"
+"\eOm": "-"
+
+## KP keys , and + are inter-changed in Sun mode
+"\eOk": "+"
+"\eOl": ","
+"\eOn": "."
+
+## KP numbers in Sun mode
+"\eOp": "0"
+"\eOq": "1"
+"\eOr": "2"
+"\eOs": "3"
+"\eOt": "4"
+"\eOu": "5"
+"\eOv": "6"
+"\eOw": "7"
+"\eOx": "8"
+"\eOy": "9"
+
+# KP begin (key 5)
+"\eOE": re-read-init-file
 
 # Navigation
 ## M-b and M-f move to whitespace instead of /
 "\eb": shell-backward-word
 "\ef": shell-forward-word
-
-## M-RightArrow has legacy functionality
-"\e[1;3C": forward-word
-
-## C-RightArrow has legacy functionality
-"\e[1;5C": forward-word
-
-## M-LeftArrow has legacy functionality
-"\e[1;3D": backward-word
-
-## C-LeftArrow has legacy functionality
-"\e[1;5D": backward-word
 
 # Kill Ring
 ## M-d and M-Rubout kills to whitespace instead of /
@@ -49,3 +162,8 @@ set visible-stats on
 ## M-" quotes text
 "\e\"": "\C-w\"\C-y\e\\\" "
 
+# History
+## M-s does forward search as default C-s is used for flow control
+"\es": forward-search-history
+
+$endif
