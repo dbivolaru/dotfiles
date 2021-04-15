@@ -39,6 +39,7 @@ set output-meta on
 set enable-keypad on
 
 # Unmap double escape and handle CSI and SS3 terminal escape sequences
+set keyseq-timeout 1
 "\e\e":
 "\e[": skip-csi-sequence
 "\eO": skip-csi-sequence
@@ -114,6 +115,9 @@ $if mode=emacs
 
 ## KP keys , and + are inter-changed in Sun mode
 "\eOk": "+"
+### XTerm compatibility for VT220 comma key
+"\eO5k": ","
+"\eO5m": "-"
 "\eOl": ","
 "\eOn": "."
 
@@ -129,8 +133,9 @@ $if mode=emacs
 "\eOx": "8"
 "\eOy": "9"
 
-# KP begin (key 5)
-"\eOE": re-read-init-file
+## KP = key on Sun and on Realforce 23U/UB (Alt+{KP6,KP1} as a Windows Alt code)
+"\eOX": "="
+"\e[1;3C\e[1;3F": "="
 
 # Navigation
 ## M-b and M-f move to whitespace instead of /

@@ -85,6 +85,7 @@ set signcolumn=yes              " Always show sign column (syntastic)
 set nosol                       " Don't change cursor column when scrolling
 set incsearch                   " Incremental search
 set complete-=i                 " No include files in completion
+set mouse=nvi                   " Use mouse if available
 
 " Command timeouts
 set notimeout ttimeout

@@ -12,6 +12,7 @@ fi
 echo "*** Installing system utilities"
 dnf install -y --allowerasing \
 	mc vim vim-X11 vim-default-editor ctags ripgrep kitty xterm fish sshfs colordiff meld \
+	screen tmux tmux-powerline \
 	imwheel \
 	bsd-games cmatrix \
 	smartmontools htop dnfdragora gnome-tweak-tool dconf-editor \

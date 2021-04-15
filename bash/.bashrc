@@ -119,7 +119,7 @@ __vte_osc7() {
 __vte_osc99() {
 	precmd
 	# postexec
-	if ((ENDTIME - STARTTIME >= 30)); then
+	if ((ENDTIME - STARTTIME >= 300)); then
 		printf '\e]99;d=0:p=title;Command completed\e\\'
 		printf '\e]99;d=1:p=body;%s\e\\' "$1"
 	fi
@@ -183,6 +183,10 @@ case "$TERM" in
 		;;
 
 	screen*)
+		alias ssh='ssh -x'
+
+		export PS0=
+		export PROMPT_COMMAND=
 		;;
 
 	*)
