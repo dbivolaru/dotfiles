@@ -89,6 +89,7 @@ red_if_root() {
 
 export PS1="\[\$(red_if_root)\][\u@\h\$(get_ssh) \W\[\e[01m\]\$(get_jobs)\$(get_git_branch)\$(get_venv)\[\e[00m\]\$(red_if_root)]\$(long_venv_prompt)\\$\[\e[00m\] "
 export VIRTUAL_ENV_DISABLE_PROMPT=1
+export GOPATH=$HOME/go
 
 preexec() {
 	STARTTIME=$EPOCHSECONDS
