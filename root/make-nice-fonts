@@ -1,10 +1,14 @@
 #!/bin/sh
 
+# Install MS Fonts
+dnf install curl cabextract xorg-x11-font-utils fontconfig
+rpm -i https://downloads.sourceforge.net/project/mscorefonts2/rpms/msttcore-fonts-installer-2.6-1.noarch.rpm
+
 # Build tools
 dnf install -y rpm-build gcc rpmdevtools
 
 # Pre-reqs
-dnf install -y bzip2-devel libX11-devel libpng-devel zlib-devel
+dnf install -y bzip2-devel libX11-devel libpng-devel zlib-devel harfbuzz-devel
 
 # Download freetype source
 rm -f freetype-*.src.rpm

@@ -4,7 +4,7 @@ echo "Rebuilding RPM DB..."
 rpm --rebuilddb
 
 echo "Distro sync..."
-dnf distro-sync --setopt=deltarpm=0 --allowerasing
+dnf distro-sync --setopt=deltarpm=0 --setopt=protected_packages= --allowerasing
 
 echo "Updatedb..."
 updatedb
