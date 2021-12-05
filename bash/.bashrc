@@ -1,7 +1,7 @@
 # .bashrc
 
 # Source global definitions
-if [ -f /etc/bashrc ]; then
+if [[ -f /etc/bashrc ]]; then
 	. /etc/bashrc
 fi
 
@@ -25,7 +25,7 @@ alias ls='ls -h --color=auto --group-directories-first' 2>/dev/null
 alias diff='diff --color=auto -ud'
 
 # Prevent expensive mistakes
-if [ "$EUID" -eq 0 ]; then
+if [[ "$EUID" -eq 0 ]]; then
 	alias rm='rm -i'
 	alias cp='cp -i'
 	alias mv='mv -i'
@@ -36,7 +36,7 @@ lll.() { stat --printf="%A %#03a %h %4U %4G %s %.19y %n (%C)\n" .* | numfmt --to
 
 bindiff() { diff --color=auto -ud <(xxd -g 1 "$1") <(xxd -g 1 "$2") "${@:3}"; }
 
-if [[ -x "$(command -v vimx)" && -n $DISPLAY ]]; then
+if [[ -x "$(command -v vimx)" && -n "$DISPLAY" ]]; then
 	alias vi='vimx'
 	alias vim='vimx'
 	export EDITOR='vimx'
@@ -45,6 +45,11 @@ else
 	export EDITOR='vim'
 fi
 export VIMRUNTIME="$($EDITOR --version | awk ' /f-b/ { gsub(/["]/,"",$NF); print $NF }')"
+export MERGE="vimdiff"
+
+if [[ -x "$(command -v uname)" ]]; then
+	export HOSTNAME=$(uname -n)
+fi
 
 shopt -s histappend
 shopt -s checkwinsize
@@ -55,14 +60,14 @@ get_git_branch() {
 }
 
 get_venv() {
-	if [ -n "$VIRTUAL_ENV" ]; then
+	if [[ -n "$VIRTUAL_ENV" ]]; then
 		# Alternate symbols: 🐍
 		printf ' 🐍%s' "${VIRTUAL_ENV##*/}"
 	fi
 }
 
 long_venv_prompt() {
-	if [ -n "$VIRTUAL_ENV" ]; then
+	if [[ -n "$VIRTUAL_ENV" ]]; then
 		printf '\n'
 	fi
 }
@@ -70,19 +75,19 @@ long_venv_prompt() {
 get_jobs() {
 	local j='\j'
 	local jj="${j@P}"
-	if [ "$jj" -gt 0 ]; then
+	if [[ "$jj" -gt 0 ]]; then
 		printf ' ⏳%s' "$jj"
 	fi
 }
 
 get_ssh() {
-	if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
+	if [[ -n "$SSH_CLIENT" || -n "$SSH_TTY" ]]; then
 		printf ' 💻'
 	fi
 }
 
 red_if_root() {
-	if [ "$EUID" -eq 0 ]; then
+	if [[ "$EUID" -eq 0 ]]; then
 		printf '\e[1;31m'
 	fi
 }
@@ -146,7 +151,10 @@ __vte_osc777pre() {
 # Set title using OSC 0
 # Parameters: $1 = user, $2 = hostname, $3 = pwd
 __vte_osc0() {
-	printf '\e]0;%s@%s:%s\e\\' "$1" "$2" "$3"
+	if [[ -x "$(command -v tty)" ]]; then
+		local ttydev=$(tty | sed -e s,^/dev/,,)
+	fi
+	printf '\e]0;%s@%s:%s [%s]\e\\' "$1" "$2" "$3" "$ttydev"
 }
 
 case "$TERM" in
@@ -156,7 +164,7 @@ case "$TERM" in
 		__vte_prompt_command() {
 			local command=$(HISTTIMEFORMAT= history 1 | sed 's/^ *[0-9]\+ *//')
 			local pwd='~'
-			[ "$PWD" != "$HOME" ] && pwd=${PWD/#$HOME\//\~\/}
+			[[ "$PWD" != "$HOME" ]] && pwd=${PWD/#$HOME\//\~\/}
 			pwd="${pwd//[[:cntrl:]]}"
 			__vte_osc0 "${USER}" "${HOSTNAME%%.*}" "${pwd}"
 			__vte_osc99 "${command//[[:cntrl:]]}"
@@ -172,7 +180,7 @@ case "$TERM" in
 		__vte_prompt_command() {
 			local command=$(HISTTIMEFORMAT= history 1 | sed 's/^ *[0-9]\+ *//')
 			local pwd='~'
-			[ "$PWD" != "$HOME" ] && pwd=${PWD/#$HOME\//\~\/}
+			[[ "$PWD" != "$HOME" ]] && pwd=${PWD/#$HOME\//\~\/}
 			pwd="${pwd//[[:cntrl:]]}"
 			__vte_osc0 "${USER}" "${HOSTNAME%%.*}" "${pwd}"
 			__vte_osc777 "${command//;/ }"
