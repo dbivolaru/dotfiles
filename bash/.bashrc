@@ -151,7 +151,7 @@ __vte_osc0() {
 
 case "$TERM" in
 	*kitty)
-		alias ssh='TERM="xterm-256color" ssh -x'
+		alias ssh='TERM="xterm-256color" ssh -ax'
 
 		__vte_prompt_command() {
 			local command=$(HISTTIMEFORMAT= history 1 | sed 's/^ *[0-9]\+ *//')
@@ -167,7 +167,7 @@ case "$TERM" in
 		;;
 
 	xterm*|vte*)
-		alias ssh='ssh -x'
+		alias ssh='ssh -ax'
 
 		__vte_prompt_command() {
 			local command=$(HISTTIMEFORMAT= history 1 | sed 's/^ *[0-9]\+ *//')
@@ -184,7 +184,7 @@ case "$TERM" in
 		;;
 
 	screen*)
-		alias ssh='ssh -x'
+		alias ssh='ssh -ax'
 
 		export PS0=
 		export PROMPT_COMMAND=
