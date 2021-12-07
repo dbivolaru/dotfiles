@@ -357,6 +357,8 @@ function! AddOtherShortcuts()
 
   " Fugitive
   nnoremap <silent> <Leader>gg :G<CR>
+  hi diffAdded ctermfg=green ctermbg=NONE cterm=NONE guifg=green guibg=NONE gui=NONE
+  hi diffRemoved ctermfg=red ctermbg=NONE cterm=NONE guifg=red guibg=NONE gui=NONE
 
   " Edit this file
   nnoremap <silent> <Leader>v :e $MYVIMRC<CR>
