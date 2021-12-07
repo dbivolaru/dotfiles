@@ -71,6 +71,8 @@ colorscheme monokai             " Use syntax highlighting color scheme
 let python_highlight_all=1      " Python syntax highlighting
 
 " Screen
+set title                       " Modify terminal title
+set titlestring=%F%m            " Display file name
 set number                      " Show line numbers
 set ruler                       " Show bottom part cursor position (ruler)
 set ttyfast                     " Terminal acceleration

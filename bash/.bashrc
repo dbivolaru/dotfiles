@@ -123,11 +123,12 @@ __vte_osc7() {
 # Parameters: $1 = command
 # Workaround: we use postexec as preexec runs inside a subshell
 __vte_osc99() {
+	local command=$(HISTTIMEFORMAT= history 1 | sed 's/^ *[0-9]\+ *//')
 	precmd
 	# postexec
 	if ((ENDTIME - STARTTIME >= 300)); then
 		printf '\e]99;d=0:p=title;Command completed\e\\'
-		printf '\e]99;d=1:p=body;%s\e\\' "$1"
+		printf '\e]99;d=1:p=body;%s\e\\' "${command//[[:cntrl:]]}"
 	fi
 }
 
@@ -139,7 +140,7 @@ __vte_osc99pre() {
 # Notify urxvt and gnome-terminal (for non-kitty usage)
 # Parameters: $1 = command
 __vte_osc777() {
-	printf '\e]777;notify;Command completed;%s\e\\' "$1"
+	printf '\e]777;notify;Command completed;%s\e\\' "${command//;/ }"
 	printf '\e]777;precmd\e\\'
 }
 
@@ -151,10 +152,17 @@ __vte_osc777pre() {
 # Set title using OSC 0
 # Parameters: $1 = user, $2 = hostname, $3 = pwd
 __vte_osc0() {
+	local pwd='~'
+	[[ "$PWD" != "$HOME" ]] && pwd=${PWD/#$HOME\//\~\/}
+	pwd="${pwd//[[:cntrl:]]}"
+
 	if [[ -x "$(command -v tty)" ]]; then
-		local ttydev=$(tty | sed -e s,^/dev/,,)
+		local ttydev=$(tty | sed -e s,^/dev/,, -e s,/,-,)
+		[[ -n "$STY" ]] && ttydev="$ttydev ${STY%.*}"
+		[[ -n "$TMUX" ]] && { ttydev="$ttydev ${TMUX#*,}"; ttydev="${ttydev/,/.pts-}"; }
 	fi
-	printf '\e]0;%s@%s:%s [%s]\e\\' "$1" "$2" "$3" "$ttydev"
+
+	printf '\e]0;%s@%s:%s [%s]\e\\' "$USER" "${HOSTNAME%%.*}" "$pwd" "$ttydev"
 }
 
 case "$TERM" in
@@ -162,12 +170,8 @@ case "$TERM" in
 		alias ssh='TERM="xterm-256color" ssh -ax'
 
 		__vte_prompt_command() {
-			local command=$(HISTTIMEFORMAT= history 1 | sed 's/^ *[0-9]\+ *//')
-			local pwd='~'
-			[[ "$PWD" != "$HOME" ]] && pwd=${PWD/#$HOME\//\~\/}
-			pwd="${pwd//[[:cntrl:]]}"
-			__vte_osc0 "${USER}" "${HOSTNAME%%.*}" "${pwd}"
-			__vte_osc99 "${command//[[:cntrl:]]}"
+			__vte_osc0
+			__vte_osc99
 		}
 
 		export PS0=$(__vte_osc99pre)
@@ -178,12 +182,8 @@ case "$TERM" in
 		alias ssh='ssh -ax'
 
 		__vte_prompt_command() {
-			local command=$(HISTTIMEFORMAT= history 1 | sed 's/^ *[0-9]\+ *//')
-			local pwd='~'
-			[[ "$PWD" != "$HOME" ]] && pwd=${PWD/#$HOME\//\~\/}
-			pwd="${pwd//[[:cntrl:]]}"
-			__vte_osc0 "${USER}" "${HOSTNAME%%.*}" "${pwd}"
-			__vte_osc777 "${command//;/ }"
+			__vte_osc0
+			__vte_osc777
 			__vte_osc7
 		}
 
@@ -195,7 +195,7 @@ case "$TERM" in
 		alias ssh='ssh -ax'
 
 		export PS0=
-		export PROMPT_COMMAND=
+		export PROMPT_COMMAND=__vte_osc0
 		;;
 
 	*)
