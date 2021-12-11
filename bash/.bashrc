@@ -150,7 +150,6 @@ __vte_osc777pre() {
 }
 
 # Set title using OSC 0
-# Parameters: $1 = user, $2 = hostname, $3 = pwd
 __vte_osc0() {
 	local pwd='~'
 	[[ "$PWD" != "$HOME" ]] && pwd=${PWD/#$HOME\//\~\/}
