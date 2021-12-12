@@ -383,8 +383,9 @@ endfunction
 
 augroup OtherShortcuts
   autocmd!
-  au VimEnter * let g:stty_save = system('stty --save') | call AddOtherShortcuts()
-  au VimLeave * silent! exe '!stty' shellescape(g:stty_save)
+  au VimEnter * call AddOtherShortcuts()
+  "au VimEnter * let g:stty_save = system('stty --save') | call AddOtherShortcuts()
+  "au VimLeave * exe '!stty ' . shellescape(g:stty_save)
 augroup END
 
 " Update time stamps etc. before saving
@@ -500,9 +501,9 @@ let g:tagbar_autoshowtag = 1 " Expand folds to show current tag
 " Faster background clearing
 "=====================================================
 
-if has('gui_running') || has('nvim') 
+if has('gui_running') || has('nvim')
   hi Normal guifg=#f8f8f2 guibg=#272822
-else
+elseif &term == 'xterm-kitty'
   " Set the terminal default background and foreground colors, thereby
   " improving performance by not needing to set these colors on empty cells.
   hi Normal guifg=NONE guibg=NONE ctermfg=NONE ctermbg=NONE

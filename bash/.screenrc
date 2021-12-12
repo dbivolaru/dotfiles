@@ -1,1 +1,2 @@
-hardstatus string "%h %t%?:%n%?"
+altscreen on
+hardstatus string "(win-%n) %h"

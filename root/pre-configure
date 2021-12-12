@@ -14,7 +14,7 @@ dnf install -y --allowerasing \
 	mc vim vim-X11 vim-default-editor ctags ripgrep kitty xsel xterm fish sshfs colordiff meld \
 	screen tmux tmux-powerline \
 	imwheel \
-	bsd-games cmatrix \
+	bsd-games cmatrix neofetch \
 	smartmontools htop dnfdragora gnome-tweak-tool dconf-editor \
 	curl cabextract \
 	xterm xorg-x11-fonts* xorg-x11-font-utils fontconfig \
@@ -33,7 +33,7 @@ dnf install -y --allowerasing \
 echo "*** Installing development libraries"
 dnf install -y \
 	git git-extras git-filter-repo \
-	gcc gcc-c++ make binutils automake pkg-config \
+	gcc gcc-c++ make binutils automake pkg-config strace \
 	protobuf-compiler \
 	gobject-introspection-devel cairo-devel gtk3 cairo-gobject-devel \
 	java-1.8.0-openjdk \
