@@ -116,7 +116,9 @@ precmd() {
 
 # Notify OS of local folder URL
 __vte_osc7() {
-	printf '\e]7;file://%s%s\e\\' "${HOSTNAME}" "$(/usr/libexec/vte-urlencode-cwd)"
+	local hostname='\h'
+	hostname="${hostname@P}"
+	printf '\e]7;file://%s%s\e\\' "${hostname}" "$(/usr/libexec/vte-urlencode-cwd)"
 }
 
 # Notify kitty when command completes (similar styling as OSC 777 on gnome-terminal)
@@ -151,17 +153,19 @@ __vte_osc777pre() {
 
 # Set title using OSC 0
 __vte_osc0() {
-	local pwd='~'
-	[[ "$PWD" != "$HOME" ]] && pwd=${PWD/#$HOME\//\~\/}
-	pwd="${pwd//[[:cntrl:]]}"
-
 	if [[ -x "$(command -v tty)" ]]; then
-		local ttydev=$(tty | sed -e s,^/dev/,, -e s,/,-,)
-		[[ -n "$STY" ]] && ttydev="$ttydev ${STY%.*}"
-		[[ -n "$TMUX" ]] && { ttydev="$ttydev ${TMUX#*,}"; ttydev="${ttydev/,/.pts-}"; }
+		local ttydev=$(tty | sed -e s,^/dev/,,)
+		local sty=
+		local stytty=
+		[[ -n "$STY" ]] && sty="${STY%.*}" stytty="${sty#*.}" ttydev="$ttydev screen:${sty%.*} ${stytty//-/\/}"
+		[[ -n "$TMUX" ]] && ttydev="$ttydev tmux:$(tmux display-message -p '#S') $(tmux display-message -p '#{client_tty}' | sed -e s,^/dev/,,)"
 	fi
 
-	printf '\e]0;%s@%s:%s [%s]\e\\' "$USER" "${HOSTNAME%%.*}" "$pwd" "$ttydev"
+	local uhp='\s-\v ($ttydev) \u@\h:\w'
+	uhp="${uhp@P}"
+	uhp="${uhp//[[:cntrl:]]}"
+
+	printf '\e]0;%s\e\\' "$uhp"
 }
 
 case "$TERM" in
