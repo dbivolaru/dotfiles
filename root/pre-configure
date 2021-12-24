@@ -37,6 +37,7 @@ dnf install -y \
 	protobuf-compiler \
 	gobject-introspection-devel cairo-devel gtk3 cairo-gobject-devel \
 	java-1.8.0-openjdk \
+	llvm \
 
 ################################################################################
 echo "*** Installing tools..."
@@ -51,6 +52,7 @@ dnf install -y \
 	python3-aiohttp \
 	python3-retrying \
 	python3-urwid \
+	python3-llvm
 
 ################################################################################
 echo "*** Installing ZeroMQ..."

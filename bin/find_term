@@ -1,0 +1,4 @@
+#!/bin/bash
+
+for f in /usr/share/terminfo/?/*; do infocmp -1 ${f##*/} | egrep --color=auto "$1" && echo $f ; done
+

@@ -5,14 +5,20 @@ if [[ -f /etc/bashrc ]]; then
 	. /etc/bashrc
 fi
 
+# User specific environment and startup programs
+export GOPATH=$HOME/go
+export PATH=$PATH:$HOME/.local/bin:$HOME/bin:$HOME/scripts:$GOPATH/bin
+
+
+# Prevent expensive mistakes
+if [[ "$EUID" -eq 0 ]]; then
+	alias rm='rm -i'
+	alias cp='cp -i'
+	alias mv='mv -i'
+fi
+
 # Not an interactive shell?
 [[ "$-" == *i* ]] || return 0
-
-# User specific environment
-if ! [[ "$PATH" =~ "$HOME/.local/bin:$HOME/bin:" ]]; then
-    PATH="$HOME/.local/bin:$HOME/bin:$PATH"
-fi
-export PATH
 
 # Set umask
 umask 027
@@ -23,13 +29,6 @@ alias l.='ls -dh .* --color=auto --group-directories-first' 2>/dev/null
 alias ll.='ls -dlh .* --color=auto --group-directories-first' 2>/dev/null
 alias ls='ls -h --color=auto --group-directories-first' 2>/dev/null
 alias diff='diff --color=auto -ud'
-
-# Prevent expensive mistakes
-if [[ "$EUID" -eq 0 ]]; then
-	alias rm='rm -i'
-	alias cp='cp -i'
-	alias mv='mv -i'
-fi
 
 lll() { stat --printf="%A %#03a %h %4U %4G %s %.19y %n (%C)\n" * | numfmt --to=iec-i --field=6 --padding=5; }
 lll.() { stat --printf="%A %#03a %h %4U %4G %s %.19y %n (%C)\n" .* | numfmt --to=iec-i --field=6 --padding=5; }
@@ -94,7 +93,6 @@ red_if_root() {
 
 export PS1="\[\$(red_if_root)\][\u@\h\$(get_ssh) \W\[\e[01m\]\$(get_jobs)\$(get_git_branch)\$(get_venv)\[\e[00m\$(red_if_root)\]]\$(long_venv_prompt)\\$\[\e[00m\] "
 export VIRTUAL_ENV_DISABLE_PROMPT=1
-export GOPATH=$HOME/go
 
 preexec() {
 	STARTTIME=$EPOCHSECONDS

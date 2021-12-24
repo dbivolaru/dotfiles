@@ -1,0 +1,4 @@
+#!/bin/bash
+
+git filter-branch --index-filter 'git rm --cached --ignore-unmatch $1' --tag-name-filter cat -- --all
+
