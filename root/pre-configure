@@ -21,11 +21,11 @@ dnf install -y --allowerasing \
 	gnome-shell-extension-common.noarch \
 	gnome-shell-extension-apps-menu gnome-shell-extension-background-logo \
 	gnome-shell-extension-dash-to-dock gnome-shell-extension-drive-menu \
-	gnome-shell-extension-horizontal-workspaces gnome-shell-extension-launch-new-instance \
+	gnome-shell-extension-launch-new-instance \
 	gnome-shell-extension-places-menu gnome-shell-extension-pomodoro \
 	gnome-shell-extension-system-monitor-applet gnome-shell-extension-topicons-plus \
 	gnome-shell-extension-user-theme gnome-shell-extension-window-list \
-	gnome-shell-extension-windowoverlay-icons gnome-shell-extension-workspace-indicator \
+	gnome-shell-extension-workspace-indicator \
 	la-capitaine-cursor-theme la-capitaine-icon-theme \
 	qalculate-gtk \
 
@@ -47,12 +47,12 @@ dnf install -y \
 	python3-ipdb python3-coverage python3-coverage_pth python3-mock \
 	python3-pytz python3-tzlocal \
 	python3-numpy python3-pandas python3-scipy python3-scikit-learn python3-statsmodels \
-	python3-matplotlib python3-seaborn \
+	python3-matplotlib python3-seaborn python3-gobject \
 	python3-defusedxml \
 	python3-aiohttp \
 	python3-retrying \
 	python3-urwid \
-	python3-llvm
+	python3-llvmlite
 
 ################################################################################
 echo "*** Installing ZeroMQ..."

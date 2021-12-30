@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+csi = '\x1b['
+cyan = f'{csi}30;46m'
+white = f'{csi}30;47m'
+rst = f'{csi}00m'
+
+def mc_print(lst, title=None):
+    if title:
+        print(f'{white}{title: ^160}{rst}', flush=True)
+    for l in lst:
+        print(f'{l[0]: >2}{cyan}{l[1]: <14}{rst}', end='', flush=True)
+    print('', flush=True)
+    print('', flush=True)
+
+print('\n' * 38, end='', flush=True)
+
+ssh_help = [
+    ['1', 'WaitConn'],
+    ['2', 'ListConn'],
+    ['3', 'Rekey'],
+    ['4', '---'],
+    ['5', 'Command Line'],
+
+    ['6', 'Break'],
+    ['7', 'Disconnect'],
+    ['8', '---'],
+    ['9', '---'],
+    ['10', '---']
+]
+mc_print(ssh_help, title='SSH Functions (Ctrl + Fn)')
+
+kitty_alt_help = [
+    ['1', '---'],
+    ['2', 'AltPrint'],
+    ['3', 'Reset'],
+    ['4', '---'],
+    ['5', 'HangUp'],
+
+    ['6', 'Stop'],
+    ['7', 'Quit'],
+    ['8', 'Kill'],
+    ['9', '---'],
+    ['10', '---']
+]
+mc_print(kitty_alt_help, title='Terminal Functions (Ctrl + Shift + Alt + Fn)')
+
+kitty_help = [
+    ['1', 'Hold'],
+    ['2', 'Print'],
+    ['3', 'Setup'],
+    ['4', 'Shell'],
+    ['5', 'Interrupt'],
+
+    ['6', 'Suspend'],
+    ['7', 'Terminate'],
+    ['8', 'Continue'],
+    ['9', '---'],
+    ['10', 'Maximize']
+]
+mc_print(kitty_help, title='Terminal Functions (Ctrl + Shift + Fn)')
