@@ -18,11 +18,10 @@ ssh_help = [
     ['1', 'WaitConn'],
     ['2', 'ListConn'],
     ['3', 'Rekey'],
-    ['4', '---'],
-    ['5', 'Command Line'],
-
-    ['6', 'Break'],
-    ['7', 'Disconnect'],
+    ['4', 'SSH Prompt'],
+    ['5', 'Break'],
+    ['6', 'Suspend'],
+    ['7', 'Terminate'],
     ['8', '---'],
     ['9', '---'],
     ['10', '---']
@@ -31,7 +30,7 @@ mc_print(ssh_help, title='SSH Functions (Ctrl + Fn)')
 
 kitty_alt_help = [
     ['1', '---'],
-    ['2', 'AltPrint'],
+    ['2', 'AltScreen'],
     ['3', 'Reset'],
     ['4', '---'],
     ['5', 'HangUp'],
@@ -46,9 +45,9 @@ mc_print(kitty_alt_help, title='Terminal Functions (Ctrl + Shift + Alt + Fn)')
 
 kitty_help = [
     ['1', 'Hold'],
-    ['2', 'Print'],
+    ['2', 'Screen'],
     ['3', 'Setup'],
-    ['4', 'Shell'],
+    ['4', 'Kitty Prompt'],
     ['5', 'Interrupt'],
 
     ['6', 'Suspend'],
