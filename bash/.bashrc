@@ -168,7 +168,7 @@ __vte_osc0() {
 
 case "$TERM" in
 	*kitty)
-		alias ssh='TERM="xterm-256color" ssh -ax'
+		alias ssh='TERM="xterm-256color" ssh -ax -o ServerAliveInterval=5 -o ServerAliveCountMax=1'
 
 		__vte_prompt_command() {
 			__vte_osc0
@@ -180,7 +180,7 @@ case "$TERM" in
 		;;
 
 	xterm*|vte*)
-		alias ssh='ssh -ax'
+		alias ssh='ssh -ax -o ServerAliveInterval=5 -o ServerAliveCountMax=1'
 
 		__vte_prompt_command() {
 			__vte_osc0
@@ -193,7 +193,7 @@ case "$TERM" in
 		;;
 
 	screen*)
-		alias ssh='ssh -ax'
+		alias ssh='ssh -ax -o ServerAliveInterval=5 -o ServerAliveCountMax=1'
 
 		export PS0=
 		export PROMPT_COMMAND=__vte_osc0
