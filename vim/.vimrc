@@ -123,8 +123,8 @@ augroup END
 set nobackup            " No backup files
 set nowritebackup       " No backup while editing
 set noswapfile          " No swap files
-set modelines=0         " No modelines
-set nomodeline          " No modelines, again
+set modelines=5         " Scan only 5 lines if modeline is enabled
+set nomodeline          " No modeline by default
 set wildignore+=*/__pycache__/*,*/venv/*,*/build/*,*/dist/*,*/.git/*,*/*.log,*.ipynb,*.pyc*
 let &grepprg='rg --vimgrep --smart-case -g "!*.{log,ipynb}"'
 
@@ -255,7 +255,7 @@ cnoremap w!! call SudoSave()
 
 " Setup shortcuts at VimEnter
 function! AddOtherShortcuts()
-  " Movement on big linebreak'ed lines
+  " Movement on big linebreak'ed lines; conisder autocompletion handling
   nnoremap <expr> j (v:count == 0 ? 'gj' : 'j')
   nnoremap <expr> k (v:count == 0 ? 'gk' : 'k')
   vnoremap <expr> j (v:count == 0 ? 'gj' : 'j')
@@ -264,8 +264,8 @@ function! AddOtherShortcuts()
   nnoremap <Up> gk
   vnoremap <Down> gj
   vnoremap <Up> gk
-  inoremap <Down> <C-\><C-o>gj
-  inoremap <Up> <C-\><C-o>gk
+  inoremap <expr> <Down> (pumvisible() ? '<Down>' : '<C-\><C-o>gj')
+  inoremap <expr> <Up> (pumvisible() ? '<Up>' : '<C-\><C-o>gk')
 
   " Keyboard folding of code
   nnoremap <space> za
@@ -274,16 +274,23 @@ function! AddOtherShortcuts()
   " Replace default tags goto with list if many matches
   nnoremap <C-]> g<C-]>
 
-  " Keyboard jumping from insert mode
-  inoremap <C-a> <C-\><C-o>0
+  " Keyboard jumping from insert mode; avoid messing up autocompletion C-e
+  " Note: this overwrites C-a re-insert text and C-e insert character from below
+  inoremap <C-a> <Home>
   inoremap <C-b> <C-\><C-o>^
-  inoremap <C-e> <C-\><C-o>$
+  inoremap <expr> <C-e> (pumvisible() ? '<C-e>' : '<End>')
+  inoremap <M-e> <C-e>
+  inoremap <M-y> <C-y>
 
-  " Write undo history when making a new line
-  inoremap <CR> <C-g>u<CR>
+  " Write undo history when making a new line; with autocompletion handling
+  inoremap <expr> <CR> (pumvisible() ? '<C-y>' : '<C-g>u<CR>')
 
   " Write undo history when using register commands
   inoremap <C-r> <C-g>u<C-r>
+
+  " Modeline magic
+  nnoremap <Leader>m :setl modeline <BAR>e<CR>
+  nnoremap <Leader>M :setl nomodeline <BAR>e<CR>
 
   " Search word under cursor
   nnoremap <Leader>f /\V\<<C-r>=escape(expand('<cword>'), '/\?')<CR>\>
@@ -384,8 +391,6 @@ endfunction
 augroup OtherShortcuts
   autocmd!
   au VimEnter * call AddOtherShortcuts()
-  "au VimEnter * let g:stty_save = system('stty --save') | call AddOtherShortcuts()
-  "au VimLeave * exe '!stty ' . shellescape(g:stty_save)
 augroup END
 
 " Update time stamps etc. before saving
@@ -470,7 +475,18 @@ let g:jedi#popup_on_dot=0 " This seems too laggy, so we disable
 let g:jedi#popup_select_first=1 " Saves one key strokei
 let g:jedi#show_call_signatures=0 " This seems too lagy, so we disable
 let g:jedi#show_call_signatures_delay=0 " Show signature immediately
+let g:jedi#use_splits_not_buffers = "left"
+
+" Keyboard shortcuts
+let g:jedi#completions_command = "<C-Space>"
+
+let g:jedi#goto_command = "<leader>d"
 let g:jedi#goto_assignments_command = "<leader>a"
+let g:jedi#goto_stubs_command = "<leader>s"
+let g:jedi#usages_command = "<leader>n"
+
+let g:jedi#rename_command = "<leader>r"
+let g:jedi#documentation_command = "K"
 
 " Call signature scan get quite slow with big libraries like pandas
 " autocmd FileType python call jedi#configure_call_signatures()

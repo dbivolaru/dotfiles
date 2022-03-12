@@ -32,7 +32,6 @@ $endif
 set convert-meta off
 set enable-meta-key on
 set input-meta on
-set meta-flag on
 set output-meta on
 
 # Put keypad in app mode
