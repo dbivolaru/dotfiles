@@ -7693,10 +7693,28 @@
         <description>Position of the Meta and Hyper keys</description>
       </configItem>
       <option>
-    <configItem>
-      <name>hyper:lwin</name>
-      <description>Left Windows key as Meta</description>
-    </configItem>
+        <configItem>
+          <name>hyper:hhkb</name>
+          <description>HHKB Mode (Win as Meta, Alt as Super)</description>
+        </configItem>
+      </option>
+      <option>
+        <configItem>
+          <name>hyper:lalt</name>
+          <description>Left Alt key as Hyper</description>
+        </configItem>
+      </option>
+      <option>
+        <configItem>
+          <name>hyper:lwin</name>
+          <description>Left Windows key as Hyper</description>
+        </configItem>
+      </option>
+      <option>
+        <configItem>
+          <name>hyper:lctrl</name>
+          <description>Left Ctrl key as Hyper</description>
+        </configItem>
       </option>
       <option>
         <configItem>

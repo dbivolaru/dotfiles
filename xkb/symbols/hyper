@@ -1,27 +1,49 @@
-partial alphanumeric_keys modifier_keys
+partial modifier_keys
+xkb_symbols "hhkb" {
+    key <LWIN> { [ Meta_L, Meta_L ] };
+    key <RWIN> { [ Meta_R, Meta_R ] };
+    key <LALT> { type[Group1] = "ONE_LEVEL", symbols[Group1] = [ Super_L ] };
+    key <RALT> { type[Group1] = "ONE_LEVEL", symbols[Group1] = [ Super_R ] };
+    key <META> { [ NoSymbol, Meta_L, Meta_R ] };
+    key <ALT> { [ NoSymbol, Alt_L, Alt_R ] };
+    key <HYPR> { [ NoSymbol, Hyper_L, Hyper_R ] };
+    modifier_map Mod1 { <LWIN>, <RWIN>, <META> };
+    modifier_map Mod3 { <HYPR> };
+    modifier_map Mod4 { <LALT>, <RALT>, <SUPR>, <ALT> };
+};
+
+partial modifier_keys
+xkb_symbols "lalt" {
+    replace key <LALT> { type[Group1] = "ONE_LEVEL", symbols[Group1] = [ Hyper_L ] };
+    modifier_map Mod3 { <LALT>, <HYPR> };
+};
+
+partial modifier_keys
 xkb_symbols "lwin" {
-    replace key <META> { [ Meta_L, Meta_L ] };
-    replace key <LWIN> { [ Meta_L, Meta_L ] };
-    modifier_map Mod1 { <META>, <LWIN> };
+    replace key <LWIN> { [ Hyper_L ] };
+    modifier_map Mod3 { <LWIN>, <HYPR> };
 };
 
-partial alphanumeric_keys modifier_keys
+partial modifier_keys
+xkb_symbols "lctl" {
+    replace key <LCTL> { [ Hyper_L ] };
+    modifier_map Mod3 { <LCTL>, <HYPR> };
+};
+
+partial modifier_keys
 xkb_symbols "ralt" {
-    replace key <HYPR> { [ Hyper_R, Hyper_R ] };
-    replace key <RALT> { [ Hyper_R, Hyper_R ] };
-    modifier_map Mod3 { <HYPR>, <RALT> };
+    replace key <RALT> { type[Group1] = "ONE_LEVEL", symbols[Group1] = [ Hyper_R ] };
+    modifier_map Mod3 { <RALT>, <HYPR> };
 };
 
-partial alphanumeric_keys modifier_keys
+partial modifier_keys
 xkb_symbols "rwin" {
-    replace key <HYPR> { [ Hyper_R, Hyper_R ] };
-    replace key <RWIN> { [ Hyper_R, Hyper_R ] };
-    modifier_map Mod3 { <HYPR>, <RWIN> };
+    replace key <RWIN> { [ Hyper_R ] };
+    modifier_map Mod3 { <RWIN>, <HYPR> };
 };
 
-partial alphanumeric_keys modifier_keys
+partial modifier_keys
 xkb_symbols "rctl" {
-    replace key <HYPR> { [ Hyper_R, Hyper_R ] };
-    replace key <RCTL> { [ Hyper_R, Hyper_R ] };
-    modifier_map Mod3 { <HYPR>, <RCTL> };
+    replace key <RCTL> { [ Hyper_R ] };
+    modifier_map Mod3 { <RCTL>, <HYPR> };
 };

@@ -983,7 +983,10 @@
   terminate            Key sequence to kill the X server
   terminate:ctrl_alt_bksp Ctrl+Alt+Backspace
   hyper                Position of the Hyper key
-  hyper:lwin           Left Windows key as Meta
+  hyper:hhkb           HHKB Mode
+  hyper:lalt           Left Alt key as Hyper
+  hyper:lwin           Left Windows key as Hyper
+  hyper:lctl           Left Ctrl key as Hyper
   hyper:ralt           Right Alt as Hyper
   hyper:rwin           Right Windows key as Hyper
-  hyper:rctl           Right Ctrl as Hyper
+  hyper:rctl           Right Ctrl key as Hyper
