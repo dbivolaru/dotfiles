@@ -1,17 +1,17 @@
-# 0 - Certificates
-# Admin Client Certificate
-# Kubelet Client Certificates 1:n (per worker)
-# Controller Manager Client Certificate
-# Kube Proxy Client Certificate
-# Scheduler Client Certificate
-# Kubernetes API Server Certificate
-# Service Account Key Pair
+# Standalone kubelet with static pods
 
-# Disable swap - otherwise kubelet doesn't run
+# 0 - OS Setup
+# Disable swap - otherwise kubelet/pods won't perform
+# If you use zram, then no need to do so; I updated the kubelet config to take it
 swapoff -a
 
-# Load required kernel modules
+# Load required kernel modules & settings
 modprobe overlay && modprobe br_netfilter
+sysctl -w net.bridge.bridge-nf-call-iptables=1
+sysctl -w net.ipv4.ip_forward=1
+sysctl -w net.bridge.bridge-nf-call-ip6tables=1
+sysctl -w kernel.panic=10
+sysctl -w kernel.panic_on_oops=1
 
 # Kernel module should be loaded on every reboot
 cat <<EOF > /etc/modules-load.d/crio-net.conf
@@ -19,28 +19,31 @@ overlay
 br_netfilter
 EOF
 
-# Network settings
+# Network settings should be loaded on every reboot
 cat <<EOF > /etc/sysctl.d/99-kubernetes-cri.conf
 net.bridge.bridge-nf-call-iptables  = 1
 net.ipv4.ip_forward                 = 1
 net.bridge.bridge-nf-call-ip6tables = 1
 EOF
 
+# Kernel settings (kubelet also sets them itself; here just for reference explicitly)
 cat << EOF > /etc/sysctl.d/99-kubelet-kernel.conf
 kernel.panic         = 10
 kernel.panic_on_oops = 1
 EOF
 
-# 1a - Base Setup (packages) - Development
+# 1 - Base Setup (packages)
 # For listing versions: dnf module list cri-o
 VERSION=1.24
 dnf module enable cri-o:$VERSION
 dnf install cri-o cri-tools runc
 
-systemctl enable crio.service
-systemctl start crio.service
+systemctl enable crio
+systemctl start crio
 
 dnf install kubernetes-node kubernetes-client containernetworking-plugins
+
+# 2 - Kubelet Setup
 
 cat << EOF > /etc/kubernetes/kubelet.config
 # https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/
@@ -85,9 +88,17 @@ KUBELET_HOSTNAME=""
 KUBELET_ADDRESS=""
 KUBELET_PORT=""
 EOF
+
 systemctl start kubelet
 
-# In a different terminal let's add a new pod
+# What just happened? We have a standalone kubelet setup running.
+# Anytime you create a .yaml file under /etc/kubernets/manifests/ it will get orchestrated
+
+
+# From this point on is just optional (as example):
+
+# 3a (Optional) - Example app (Hello World)
+
 # Hello world!
 cat << EOF > /etc/kubernetes/manifests/hello-world.yaml
 # https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/
@@ -125,70 +136,8 @@ crictl logs <container_hexid>
 # Exit kubelet from other terminal and confirm hello-world is STILL running :)
 crictl ps
 
-# Cleanup: move hello-world out of the "hot" folder; kubelet will remove all respective pods and containers
-mv /etc/kubernetes/manifests/hello-world.yaml /etc/kubernetes/
+# 3b (Optional) - Cleanup: move hello-world out of the "hot" folder; kubelet will remove all respective pods and containers
+rm /etc/kubernetes/manifests/hello-world.yaml
+sleep 120
 crictl rmi $(crictl images -q) # images afaik remain (so we do manual cleanup)
-
-# 1b - Base Setup (production FCOS)
-#rpm-ostree install kubelet kubectl cri-o
-
-# 2 - Control plane specialization
-kubeadm init --config clusterconfig.yml
-
-dnf install kubernetes-master kubernetes-kubeadm kubernetes-client etcd
-# 2b - Production FCOS
-#rpm-ostree install kubeadm kube-apiserver kube-controller-manager kube-scheduler etcd
-
-systemctl enable kube-apiserver kube-controller-manager kube-scheduler
-systemctl start kube-apiserver kube-controller-manager kube-scheduler
-
-# TODO: Load Balancer haproxy (api-server) + vmWare NSX
-
-# Network Fabric
-# Production vmWare NSX-T => NCP
-# Development:
-#     - docker NAT
-#     - brctl
-#     - ovs-vsctl
-#     - ip link add eth0p0 link eth0 type macvlan mode bridge 
-
-# 3 - Worker node specialization
-systemctl enable crio kubelet kube-proxy
-systemctl start crio kubelet kube-proxy
-
-cat <<- EOF >> /etc/crio/crio.conf
-# Do not wipe containers and images after a reboot; w00t?
-internal_wipe = false
-apparmor_profile = "crio-default"
-EOF
-
-# Metrics port for CRI-O is on 9537 by default
-
-# Make a standalone worker node (with no control plane)
-cat <<- EOF > clusterconfig.yml
-apiVersion: kubeadm.k8s.io/v1beta3
-kind: ClusterConfiguration
-kubernetesVersion: v1.24.0
-networking:
-  podSubnet: 10.244.0.0/16
----
-apiVersion: kubeadm.k8s.io/v1beta3
-kind: InitConfiguration
-nodeRegistration:
-  criSocket: unix:///var/run/crio/crio.sock
----
-apiVersion: kubelet.config.k8s.io/v1beta1
-kind: KubeletConfiguration
-staticPodPath: /etc/kubernetes/manifests
-EOF
-
-# 4 - Install DNS support (TBD?)
-kubectl apply -f https://storage.googleapis.com/kubernetes-the-hard-way/coredns-1.8.yaml
-
-
-
-# Easy login for non-root user
-mkdir -p $HOME/.kube
-sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
