@@ -26,9 +26,13 @@ net.ipv4.ip_forward                 = 1
 net.bridge.bridge-nf-call-ip6tables = 1
 EOF
 
+cat << EOF > /etc/sysctl.d/99-kubelet-kernel.conf
+kernel.panic         = 10
+kernel.panic_on_oops = 1
+EOF
 
 # 1a - Base Setup (packages) - Development
-dnf module list cri-o
+# For listing versions: dnf module list cri-o
 VERSION=1.24
 dnf module enable cri-o:$VERSION
 dnf install cri-o cri-tools runc
@@ -36,9 +40,9 @@ dnf install cri-o cri-tools runc
 systemctl enable crio.service
 systemctl start crio.service
 
-dnf install kubernetes-node containernetworking-plugins
+dnf install kubernetes-node kubernetes-client containernetworking-plugins
 
-cat << EOF > kubelet-config.yaml
+cat << EOF > /etc/kubernetes/kubelet.config
 # https://kubernetes.io/docs/reference/config-api/kubelet-config.v1beta1/
 apiVersion: kubelet.config.k8s.io/v1beta1
 kind: KubeletConfiguration
@@ -56,16 +60,38 @@ fileCheckFrequency: 20s
 cgroupDriver: systemd
 EOF
 
-# We do not provide --kuberconfig so it will start in standalone mode instead of taking it's config from the API
-# We do provide a --config instead. And we do provide the crio engine
-kubelet --config=kubelet-config.yaml --container-runtime-endpoint=unix:///var/run/crio/crio.sock
 
+cp /usr/lib/systemd/system/kubelet.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable kubelet
+cat << EOF > /etc/kubernetes/config
+# Logging to stderr will get recorded in systemd
+KUBE_LOGTOSTDERR="--logtostderr=true"
+
+# Default verbosity
+KUBE_LOG_LEVEL="--v=2"
+EOF
+cat << EOF > /etc/kubernetes/kubelet
+# As we run in standalone mode we specify a KubeletConfiguration directly
+KUBELET_KUBECONFIG="--config=/etc/kubernetes/kubelet.config"
+
+# Specify we are using CRI-O
+KUBELET_ARGS="--container-runtime-endpoint=unix:///var/run/crio/crio.sock"
+
+# Not needed - actual hostname
+KUBELET_HOSTNAME=""
+
+# Not needed - info server
+KUBELET_ADDRESS=""
+KUBELET_PORT=""
+EOF
+systemctl start kubelet
 
 # In a different terminal let's add a new pod
 # Hello world!
 cat << EOF > /etc/kubernetes/manifests/hello-world.yaml
 # https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/
-apiVersion: k8s.io/api/core/v1
+apiVersion: v1
 kind: Pod
 metadata:
   creationTimestamp: null
