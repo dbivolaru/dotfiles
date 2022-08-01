@@ -1,7 +1,7 @@
 #!/bin/sh
 
 dnf upgrade --refresh
-dnf install -y rpmconf dnf-plugins-core symlinks
+dnf install -y rpmconf dnf-plugins-core symlinks remove-retired-packages
 echo "*****"
 echo "* RPM verify..."
 echo "*****"
@@ -13,6 +13,11 @@ echo "*****"
 dnf check
 
 echo "*****"
+echo "* RPM config migration..."
+echo "*****"
+rpmconf -a
+
+echo "*****"
 echo "* Packages with problems..."
 echo "*****"
 dnf repoquery --unsatisfied
@@ -20,17 +25,17 @@ dnf repoquery --unsatisfied
 echo "*****"
 echo "* Packages with orphans (list only; removed in next steps)"
 echo "*****"
-dnf list extras --exclude=kernel,kernel-\*
+dnf list extras --exclude=kernel,kernel-\*,pgadmin4-\*
 
 echo "*****"
 echo "* Packages with dupes..."
 echo "*****"
 dnf repoquery --duplicates
 
-#echo "*****"
-#echo "* Packages for autoremove... (list only; removed in next steps; IMPORTANT NOT ALL SHOULD BE REMOVED)"
-#echo "*****"
-#dnf repoquery --unneeded
+echo "*****"
+echo "* Packages for autoremove... (list only; removed in next steps; IMPORTANT NOT ALL SHOULD BE REMOVED)"
+echo "*****"
+dnf repoquery --unneeded
 
 echo "*****"
 echo "* Dangling symlinks (list only; removed in next steps)"
@@ -40,11 +45,10 @@ symlinks -r /usr | grep dangling
 
 read -rsn1 -p "Press any key to continue (orphans)"; echo
 
-
 echo "*****"
 echo "* Packages with orphans (cleanup)"
 echo "*****"
-dnf remove $(dnf repoquery --extras --exclude=kernel,kernel-\*)
+dnf remove $(dnf repoquery --extras --exclude=kernel,kernel-\*,pgadmin4-\*)
 
 #read -rsn1 -p "Press any key to continue (autoremove)"; echo
 
@@ -60,7 +64,12 @@ dnf remove $(dnf repoquery --extras --exclude=kernel,kernel-\*)
 #echo "*****"
 #symlinks -r -d /usr
 
-read -rsn1 -p "Press any key to continue"; echo
+echo "*****"
+echo "* Retired packages (cleanup)"
+echo "*****"
+remove-retired-packages
+
+read -rsn1 -p "Press any key to continue (full verify)"; echo
 
 echo "*****"
 echo "* Full verify..."
@@ -71,7 +80,6 @@ egrep '^.{9}  c /' /tmp/rpm-Va.txt > /tmp/REVIEW-CONFIGS.txt
 rpm -qf $(cat /tmp/REVIEW-CONFIGS.txt | sed 's|.* /|/|') 2>&1 | sort | uniq >/tmp/REVIEW-CONFIGS.pkgs.txt
 egrep -v '^.{9}  c /' /tmp/rpm-Va.txt > /tmp/URGENT-REVIEW.txt
 rpm -qf $(cat /tmp/URGENT-REVIEW.txt | sed 's|.* /|/|') 2>&1 | sort | uniq >/tmp/URGENT-REVIEW.pkgs.txt
-rpmconf -a
 find /etc /var -name '*.rpm?*' > /tmp/REVIEW-OBSOLETE-CONFIGS.txt
 echo "*** /tmp/rpm-Va.txt /tmp/rpm-Va.pkgs.txt"
 echo "*** /tmp/REVIEW-CONFIGS.txt /tmp/REVIEW-CONFIGS.pkgs.txt"
