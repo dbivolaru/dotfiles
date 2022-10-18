@@ -60,6 +60,12 @@ if [[ -x "$(command -v uname)" ]]; then
 	export HOSTNAME=$(uname -n)
 fi
 
+# TODO Kitty integration
+# if [[ -n "$KITTY_INSTALLATION_DIR" ]]; then
+# 	export KITTY_SHELL_INTEGRATION="enabled"
+# 	source "$KITTY_INSTALLATION_DIR/shell-integration/bash/kitty.bash"
+# fi
+
 shopt -s histappend
 shopt -s checkwinsize
 
