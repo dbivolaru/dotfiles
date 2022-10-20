@@ -4,9 +4,11 @@ import datetime
 import json
 import subprocess
 from collections import defaultdict
+import math
+import os
 
 from kitty.boss import get_boss
-from kitty.fast_data_types import Screen, add_timer
+from kitty.fast_data_types import Screen
 from kitty.tab_bar import (
     DrawData,
     ExtraData,
@@ -16,10 +18,10 @@ from kitty.tab_bar import (
     draw_attributed_string
 )
 
-
-timer_id = None
+host_list = {}
 csi = '\x1b['
 cyan = f'{csi}30;46m'
+red = f'{csi}30;41m'
 white = f'{csi}30;47m'
 normal = f'{csi}37;40m'
 rst = f'{csi}00m'
@@ -32,8 +34,8 @@ ssh_help = [
     ['6', 'Suspend'],
     ['7', 'Terminate'],
     ['8', '---'],
-    # ['9', '---'],
-    # ['10', '---']
+    ['9', '---'],
+    ['10', '---']
 ]
 kitty_alt_help = [
     ['1', 'UnHold'],
@@ -45,8 +47,8 @@ kitty_alt_help = [
     ['6', 'Stop'],
     ['7', 'Quit'],
     ['8', 'Kill'],
-    # ['9', '---'],
-    # ['10', '---']
+    ['9', '---'],
+    ['10', '---']
 ]
 kitty_help = [
     ['1', 'Hold'],
@@ -58,19 +60,27 @@ kitty_help = [
     ['6', 'Suspend'],
     ['7', 'Terminate'],
     ['8', 'Continue'],
-    # ['9', '---'],
-    # ['10', 'Maximize']
+    ['9', '---'],
+    ['10', 'Maximize']
 ]
 
 
-def mc_string(lst, title=None, cols=160):
-    ret = []
+def mc_string(lst, title=None, cols=160, color=cyan):
+    ret = [rst]
     n = len(lst)
-    fn_cols = int(cols / n) - 2
+    t = len(title) if title else 0
+    cols -= t
+    fn_cols = math.floor(cols / n) - 2
+    remainder = cols - n * (fn_cols + 2)
     if title:
-        ret.append(f'{white}{title: ^{cols}}{rst}')
+        ret.append(f'{white}{title}{rst}')
+    i = 1
+    last_pad = 0
     for l in lst:
-        ret.append(f'{normal}{l[0]: >2}{cyan}{l[1]: <{fn_cols}}{rst}')
+        pad = math.floor(remainder * i / n)
+        ret.append(f'{normal}{l[0]: >2}{color}{l[1]: <{fn_cols + pad - last_pad}}{rst}')
+        last_pad = pad
+        i += 1
     ret.append('\n\n')
     return ''.join(ret)
 
@@ -85,13 +95,26 @@ def draw_tab(
     is_last: bool,
     extra_data: ExtraData,
 ) -> int:
-    global timer_id
+    if not tab.is_active:
+        return screen.cursor.x
+    this_host_list = host_list.setdefault(tab.tab_id, [os.uname().nodename])
+    userhost = next((f for f in tab.title.split(' ') if '@' in f), None)
+    if userhost:
+        host = userhost.split('@')[1].split(':')[0]
+        if len(this_host_list) >= 2 and host == this_host_list[-2]:
+            this_host_list.pop()
+        elif len(this_host_list) >= 1 and host != this_host_list[-1]:
+            this_host_list.append(host)
 
-    # if timer_id is None:
-    #     timer_id = add_timer(_redraw_tab_bar, 2.0, True)
-    draw_attributed_string(mc_string(kitty_help), screen)
-    # if is_last:
-    #     draw_right_status(draw_data, screen)
+    draw_attributed_string(
+        mc_string(
+            kitty_help if len(this_host_list) <= 1 else ssh_help,
+            title=' -> '.join(this_host_list),
+            cols=screen.columns,
+            color=red if len(this_host_list) > 1 else cyan,
+        ),
+        screen
+    )
     return screen.cursor.x
 
 
@@ -172,9 +195,4 @@ def currently_playing():
     else:
         status = ""
     return status
-
-
-def _redraw_tab_bar(timer_id):
-    for tm in get_boss().all_tab_managers:
-        tm.mark_tab_bar_dirty()
 
