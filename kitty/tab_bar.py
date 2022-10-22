@@ -15,7 +15,8 @@ from kitty.tab_bar import (
     Formatter,
     TabBarData,
     as_rgb,
-    draw_attributed_string
+    draw_attributed_string,
+    draw_title,
 )
 
 host_list = {}
@@ -73,7 +74,7 @@ def mc_string(lst, title=None, cols=160, color=cyan):
     fn_cols = math.floor(cols / n) - 2
     remainder = cols - n * (fn_cols + 2)
     if title:
-        ret.append(f'{white}{title}{rst}')
+        ret.append(f' {white}{title}{rst}')
     i = 1
     last_pad = 0
     for l in lst:
@@ -95,22 +96,29 @@ def draw_tab(
     is_last: bool,
     extra_data: ExtraData,
 ) -> int:
-    if not tab.is_active:
+    mc_title = f'{rst}{white}{tab.tab_id: >2}{rst}' if tab.is_active else f'{rst}{normal}{tab.tab_id: >2}{rst}'
+    draw_attributed_string(
+        mc_title,
+        screen
+    )
+    if not is_last:
         return screen.cursor.x
     this_host_list = host_list.setdefault(tab.tab_id, [os.uname().nodename])
     userhost = next((f for f in tab.title.split(' ') if '@' in f), None)
     if userhost:
-        host = userhost.split('@')[1].split(':')[0]
+        host = userhost.split('@')[1].split(':')[0].strip('[]()')
         if len(this_host_list) >= 2 and host == this_host_list[-2]:
             this_host_list.pop()
         elif len(this_host_list) >= 1 and host != this_host_list[-1]:
             this_host_list.append(host)
+    mc_title = ' -> '.join(this_host_list)
+    mc_title = mc_title if len(mc_title) < 40 else ' -> '.join(this_host_list[-2:])
 
     draw_attributed_string(
         mc_string(
             kitty_help if len(this_host_list) <= 1 else ssh_help,
-            title=' -> '.join(this_host_list),
-            cols=screen.columns,
+            title=mc_title,
+            cols=screen.columns - screen.cursor.x,
             color=red if len(this_host_list) > 1 else cyan,
         ),
         screen
