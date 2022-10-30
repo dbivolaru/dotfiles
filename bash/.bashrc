@@ -6,8 +6,8 @@ if [[ -f /etc/bashrc ]]; then
 fi
 
 # User specific environment and startup programs
-export GOPATH=$HOME/go
-export PATH=$PATH:$HOME/.local/bin:$HOME/bin:$HOME/scripts:$GOPATH/bin
+GOPATH=$HOME/go
+PATH=$PATH:$HOME/.local/bin:$HOME/bin:$HOME/scripts:$GOPATH/bin
 
 # Setup podman in place of docker (including rootless detection)
 if [[ -x "$(command -v podman)" ]]; then
@@ -15,7 +15,7 @@ if [[ -x "$(command -v podman)" ]]; then
 	if [[ -x "$(command -v systemctl)" ]]; then
 		systemctl --user is-active podman.socket >/dev/null 2>&1; podman_rootless=$?
 		if [[ -S "/run/user/$UID/podman/podman.sock" && $podman_rootless -eq 0 ]]; then
-			export DOCKER_HOST=unix:///run/user/$UID/podman/podman.sock
+			DOCKER_HOST=unix:///run/user/$UID/podman/podman.sock
 		fi
 	fi
 fi
@@ -48,26 +48,43 @@ bindiff() { diff --color=auto -ud <(xxd -g 1 "$1") <(xxd -g 1 "$2") "${@:3}"; }
 if [[ -x "$(command -v vimx)" && -n "$DISPLAY" ]]; then
 	alias vi='vimx'
 	alias vim='vimx'
-	export EDITOR='vimx'
+	EDITOR='vimx'
 else
 	alias vi='vim'
-	export EDITOR='vim'
+	EDITOR='vim'
 fi
-export VIMRUNTIME="$($EDITOR --version | awk ' /f-b/ { gsub(/["]/,"",$NF); print $NF }')"
-export MERGE="vimdiff"
+VIMRUNTIME="$($EDITOR --version | awk ' /f-b/ { gsub(/["]/,"",$NF); print $NF }')"
+MERGE="vimdiff"
+VIRTUAL_ENV_DISABLE_PROMPT=1
 
 if [[ -x "$(command -v uname)" ]]; then
-	export HOSTNAME=$(uname -n)
+	HOSTNAME=$(uname -n)
 fi
 
-# TODO Kitty integration
+# TODO Kitty integration ... but ours is so much better
 # if [[ -n "$KITTY_INSTALLATION_DIR" ]]; then
-# 	export KITTY_SHELL_INTEGRATION="enabled"
+# 	KITTY_SHELL_INTEGRATION="enabled"
 # 	source "$KITTY_INSTALLATION_DIR/shell-integration/bash/kitty.bash"
 # fi
 
+# Turn on parallel history, de-duplicate last command, ignore commands starting with space
 shopt -s histappend
+HISTFILESIZE=100000
+HISTSIZE=100000
+HISTCONTROL=ignoreboth
+HISTIGNORE="?:??:ls *:pwd:exit:logout:df *:du *:ps *:man *:sudo su -:su -"
+
+# Turn on window resize checking
 shopt -s checkwinsize
+
+# Jobs running when exiting
+shopt -s checkjobs
+shopt -s huponexit
+
+get_time() {
+	local t=$(date +%H:%M)
+	printf '[%s]' "$t"
+}
 
 get_git_branch() {
 	# If no powerline fonts use ⎇ instead of 
@@ -107,8 +124,8 @@ red_if_root() {
 	fi
 }
 
-export PS1="\[\$(red_if_root)\][\u@\h\$(get_ssh) \W\[\e[01m\]\$(get_jobs)\$(get_git_branch)\$(get_venv)\[\e[00m\$(red_if_root)\]]\$(long_venv_prompt)\\$\[\e[00m\] "
-export VIRTUAL_ENV_DISABLE_PROMPT=1
+PS1="\[\$(red_if_root)\][\u@\h\$(get_ssh) \W\[\e[01m\]\$(get_jobs)\$(get_git_branch)\$(get_venv)\[\e[00m\$(red_if_root)\]]\$(long_venv_prompt)\\$\[\e[00m\] "
+PS2=
 
 preexec() {
 	STARTTIME=$EPOCHSECONDS
@@ -191,8 +208,8 @@ case "$TERM" in
 			__vte_osc99
 		}
 
-		export PS0=$(__vte_osc99pre)
-		export PROMPT_COMMAND=__vte_prompt_command
+		PS0=$(__vte_osc99pre)
+		PROMPT_COMMAND=__vte_prompt_command
 		;;
 
 	xterm*|vte*)
@@ -204,15 +221,15 @@ case "$TERM" in
 			__vte_osc7
 		}
 
-		export PS0=$(__vte_osc777pre)
-		export PROMPT_COMMAND=__vte_prompt_command
+		PS0=$(__vte_osc777pre)
+		PROMPT_COMMAND=__vte_prompt_command
 		;;
 
 	screen*)
 		alias ssh='ssh -ax -o ServerAliveInterval=5 -o ServerAliveCountMax=1'
 
-		export PS0=
-		export PROMPT_COMMAND=__vte_osc0
+		PS0=
+		PROMPT_COMMAND=__vte_osc0
 		;;
 
 	*)
