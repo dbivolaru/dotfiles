@@ -32,13 +32,13 @@ print(f'{sh("kitty --version")} {cols}x{rows}', flush=True)
 print('\n' * (rows - 10), end='', flush=True)
 
 ssh_help = [
-    ['1', 'WaitConn'],
-    ['2', 'ListConn'],
-    ['3', 'Rekey'],
-    ['4', 'Cmd Line'],
-    ['5', 'Break'],
-    ['6', 'Suspend'],
-    ['7', 'Terminate'],
+    ['~&', 'WaitConn'],
+    ['~#', 'ListConn'],
+    ['~R', 'Rekey'],
+    ['~C', 'Cmd Line'],
+    ['~B', 'Break'],
+    ['^Z', 'Suspend'],
+    ['~.', 'Terminate'],
     ['8', '---'],
     # ['9', '---'],
     # ['10', '---']

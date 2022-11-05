@@ -72,7 +72,7 @@ shopt -s histappend
 HISTFILESIZE=100000
 HISTSIZE=100000
 HISTCONTROL=ignoreboth
-HISTIGNORE="?:??:ls *:pwd:exit:logout:df *:du *:ps *:man *:sudo su -:su -"
+HISTIGNORE="?:??:ls *:pwd:history:history *:exit:logout:df *:du *:ps *:man *:sudo su -:su -"
 
 # Turn on window resize checking
 shopt -s checkwinsize

@@ -6,6 +6,7 @@ import subprocess
 from collections import defaultdict
 import math
 import os
+import dbus
 
 from kitty.boss import get_boss
 from kitty.fast_data_types import Screen
@@ -19,6 +20,7 @@ from kitty.tab_bar import (
     draw_title,
 )
 
+session_bus = dbus.SessionBus()
 host_list = {}
 csi = '\x1b['
 cyan = f'{csi}30;46m'
@@ -27,13 +29,13 @@ white = f'{csi}30;47m'
 normal = f'{csi}37;40m'
 rst = f'{csi}00m'
 ssh_help = [
-    ['1', 'WaitConn'],
-    ['2', 'ListConn'],
-    ['3', 'Rekey'],
-    ['4', 'Cmd Line'],
-    ['5', 'Break'],
-    ['6', 'Suspend'],
-    ['7', 'Terminate'],
+    ['~&', 'WaitConn'],
+    ['~#', 'ListConn'],
+    ['~R', 'Rekey'],
+    ['~C', 'Cmd Line'],
+    ['~B', 'Break'],
+    ['^Z', 'Suspend'],
+    ['~.', 'Terminate'],
     ['8', '---'],
     ['9', '---'],
     ['10', '---']
@@ -64,6 +66,7 @@ kitty_help = [
     ['9', '---'],
     ['10', 'Maximize']
 ]
+STATE = defaultdict(lambda: "", {"Paused": "", "Playing": ""})
 
 
 def mc_string(lst, title=None, cols=160, color=cyan):
@@ -86,6 +89,27 @@ def mc_string(lst, title=None, cols=160, color=cyan):
     return ''.join(ret)
 
 
+def get_active_music():
+    ret = None
+    for name in session_bus.list_names():
+        if name.startswith('org.mpris.MediaPlayer2.'):
+            player = session_bus.get_object(name, '/org/mpris/MediaPlayer2')
+            iface = dbus.Interface(player, 'org.freedesktop.DBus.Properties')
+            props = iface.GetAll('org.mpris.MediaPlayer2.Player')
+            if props['PlaybackStatus'] == 'Playing' or ret is None:
+                ret = '{0}{1} {2} {3} - {4} {5}'.format(
+                    rst,
+                    normal,
+                    STATE[props['PlaybackStatus']],
+                    ''.join(props['Metadata']['xesam:artist']),
+                    props['Metadata']['xesam:title'],
+                    rst,
+                )
+            if props['PlaybackStatus'] == 'Playing':
+                break
+    return (len(ret) - 2 * len(rst) - len(normal), ret) if ret else (1, '')
+
+
 def draw_tab(
     draw_data: DrawData,
     screen: Screen,
@@ -103,6 +127,7 @@ def draw_tab(
     )
     if not is_last:
         return screen.cursor.x
+    lam, active_music = get_active_music()
     this_host_list = host_list.setdefault(tab.tab_id, [os.uname().nodename])
     userhost = next((f for f in tab.title.split(' ') if '@' in f), None)
     if userhost:
@@ -118,9 +143,13 @@ def draw_tab(
         mc_string(
             kitty_help if len(this_host_list) <= 1 else ssh_help,
             title=mc_title,
-            cols=screen.columns - screen.cursor.x,
+            cols=screen.columns - screen.cursor.x - lam,
             color=red if len(this_host_list) > 1 else cyan,
         ),
+        screen
+    )
+    draw_attributed_string(
+        active_music,
         screen
     )
     return screen.cursor.x
@@ -169,21 +198,6 @@ def create_cells() -> list[str]:
         now.strftime("%H:%M"),
     ]
 
-
-def get_headphone_battery_status():
-    try:
-        battery_pct = int(subprocess.getoutput("headsetcontrol -b -c"))
-    except Exception:
-        status = ""
-    else:
-        if battery_pct < 0:
-            status = ""
-        else:
-            status = f"{battery_pct}% {''[battery_pct // 10]}"
-    return f" {status}"
-
-
-STATE = defaultdict(lambda: "", {"Paused": "", "Playing": ""})
 
 
 def currently_playing():
