@@ -184,6 +184,7 @@ __vte_osc777pre() {
 
 # Set title using OSC 0
 __vte_osc0() {
+	local ttydev=
 	if [[ -x "$(command -v tty)" ]]; then
 		local ttydev=$(tty | sed -e s,^/dev/,,)
 		local sty=
@@ -192,7 +193,18 @@ __vte_osc0() {
 		[[ -n "$TMUX" ]] && ttydev="$ttydev tmux:$(tmux display-message -p '#S') $(tmux display-message -p '#{client_tty}' | sed -e s,^/dev/,,)"
 	fi
 
-	local uhp='\s-\v ($ttydev) \u@\h:\w'
+	local ttyspeed
+	if [[ -x "$(command -v stty)" ]]; then
+		ttyspeed=$(stty speed)
+		ttyspeed="$ttyspeed$(stty -a | awk 'BEGIN{RS=" ";FS="cs";e=0;o=0;c=0;n=0;b=1}/^parenb/{++e}/^parodd/{++o}/^cmspar/{++c}/^cs[0-9]/{n=$2}/^cstopb/{b=2}END{if(o && c)print "M";else if(e && c) print "S";else if(!e && !o && !c)print "N";else if(e)print "E";else if (o) print "O";else print "?";print n "." b}')"
+	fi
+
+	local lc
+	if [[ -x "$(command -v localectl)" ]]; then
+		lc="$(localectl | awk 'BEGIN{ORS=" "}/X11/{print $3}')"
+	fi
+
+	local uhp='$ttydev $ttyspeed $LANG $lc \s v\v \u@\h:\w'
 	uhp="${uhp@P}"
 	uhp="${uhp//[[:cntrl:]]}"
 
