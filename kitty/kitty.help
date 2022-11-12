@@ -49,7 +49,7 @@ kitty_alt_help = [
     ['1', 'UnHold'],
     ['2', 'AltScreen'],
     ['3', 'Reset'],
-    ['4', '---'],
+    ['4', 'SoftReset'],
     ['5', 'HangUp'],
 
     ['6', 'Stop'],
