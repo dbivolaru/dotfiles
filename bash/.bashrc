@@ -5,6 +5,8 @@
 # Source global definitions
 if [[ -n "${BASH_VERSION-}" && -f /etc/bashrc ]]; then
 	. /etc/bashrc
+elif [[ -n "${ZSH_VERSION-}" && -f /etc/zshrc ]]; then
+	. /etc/zshrc
 fi
 
 # User specific environment and startup programs
@@ -69,6 +71,12 @@ fi
 # 	source "$KITTY_INSTALLATION_DIR/shell-integration/bash/kitty.bash"
 # fi
 
+# Enable early enough for VTE handling
+if [[ -n "${ZSH_VERSION-}" ]]; then
+	zmodload zsh/datetime
+	setopt prompt_subst
+fi
+
 # Turn on parallel history, de-duplicate last command, ignore commands starting with space
 [[ -n "${BASH_VERSION-}" ]] && shopt -s histappend
 [[ -n "${ZSH_VERSION-}" ]] && setopt appendhistory && unsetopt extended_history && SAVEHIST=100000
@@ -110,15 +118,17 @@ long_venv_prompt() {
 	fi
 }
 
-if [[ -n "${BASH_VERSION-}" ]]; then
-	get_jobs() {
+get_jobs() {
+	if [[ -n "${BASH_VERSION-}" ]]; then
 		local j='\j'
 		local jj="${j@P}"
 		if [[ "$jj" -gt 0 ]]; then
 			printf ' ⏳%s' "$jj"
 		fi
-	}
-fi
+	elif [[ -n "${ZSH_VERSION-}" ]]; then
+		printf '%%(1j. ⏳%%j.)'
+	fi
+}
 
 get_ssh() {
 	if [[ -n "$SSH_CLIENT" || -n "$SSH_TTY" ]]; then
@@ -128,18 +138,18 @@ get_ssh() {
 
 red_if_root() {
 	if [[ "$EUID" -eq 0 ]]; then
-		printf '\e[1;31m'
+		if [[ -n "${BASH_VERSION-}" ]]; then
+			printf '\e[1;31m'
+		elif [[ -n "${ZSH_VERSION-}" ]]; then
+			printf '%%B%%F{red}'
+		fi
 	fi
 }
 
 [[ -n "${BASH_VERSION-}" ]] && PS1="\[\$(red_if_root)\][\u@\h\$(get_ssh) \W\[\e[01m\]\$(get_jobs)\$(get_git_branch)\$(get_venv)\[\e[00m\$(red_if_root)\]]\$(long_venv_prompt)\\$\[\e[00m\] "
-if [[ -n "${ZSH_VERSION-}" ]]; then
-	zmodload zsh/datetime
-	setopt prompt_subst
-	PROMPT='[%n@%m$(get_ssh) %2~%B%(1j. 💻%j.)$(get_git_branch)$(get_venv)%b]%# '
-fi
-
+[[ -n "${ZSH_VERSION-}" ]] && PROMPT='$(red_if_root)[%n@%m$(get_ssh) %2~%B$(get_jobs)$(get_git_branch)$(get_venv)%b%f$(red_if_root)]%(!.#.$)%b%f '
 [[ -n "${BASH_VERSION-}" ]] && PS2=
+[[ -n "${ZSH_VERSION-}" ]] && RPROMPT='$(get_time)'
 
 __vte_preexec() {
 	STARTTIME=$EPOCHSECONDS
@@ -157,7 +167,7 @@ __vte_precmd() {
 		fi
 	elif [[ -n "${ZSH_VERSION-}" ]]; then
 		ENDTIME=$EPOCHSECONDS
-		[[ -z "$STARTTIME" ]] && STARTTIME=$ENDTIME
+		[[ -z "$STARTTIME" ]] && STARTTIME=$ENDTIME && ENDTIME=0
 	fi
 }
 
@@ -182,10 +192,11 @@ __vte_osc99() {
 	fi
 		
 	__vte_precmd
-	if ((ENDTIME - STARTTIME >= 10)); then
+	if ((ENDTIME - STARTTIME >= 300)); then
 		printf '\e]99;d=0:p=title;Command completed\e\\'
 		printf '\e]99;d=1:p=body;%s\e\\' "${command//[[:cntrl:]]}"
 	fi
+	[[ -n "${ZSH_VERSION-}" ]] && STARTTIME=
 }
 
 # For timing how long a command took to run
@@ -211,6 +222,7 @@ __vte_osc777pre() {
 
 # Set title using OSC 0
 __vte_osc0() {
+	local last_ec=$?
 	local ttydev=
 	if [[ -x "$(command -v tty)" ]]; then
 		local ttydev=$(tty | sed -e s,^/dev/,,)
@@ -233,11 +245,11 @@ __vte_osc0() {
 
 	local uhp="$ttydev $ttyspeed | $LANG $lc"
 	if [[ -n "${BASH_VERSION-}" ]]; then
-		uhp="$uhp | \s v\v | \u@\h:\w"
+		uhp="$uhp | \s v\v | EC $last_ec | \u@\h:\w"
 		uhp="${uhp@P}"
 	elif [[ -n "${ZSH_VERSION-}" ]]; then
 		local uhp0="%n@%m:%2~"
-		uhp="$uhp | zsh v"${ZSH_VERSION-}" | ${(%%)uhp0}"
+		uhp="$uhp | zsh v"${ZSH_VERSION-}" | EC $last_ec | ${(%%)uhp0}"
 	fi
 	uhp="${uhp//[[:cntrl:]]}"
 
@@ -313,8 +325,10 @@ if [[ -n "${ZSH_VERSION-}" ]]; then
 	bindkey -e
 
 	# Configure autocompletion
-	autoload -Uz compinit
-	compinit
+	autoload -Uz compinit && compinit
+
+	# Re-use any existing bash command completions
+	autoload -Uz bashcompinit && bashcompinit
 
 	# Completion
 	zstyle ':completion:*' completer _complete _approximate _ignored
@@ -326,6 +340,9 @@ if [[ -n "${ZSH_VERSION-}" ]]; then
 
 	zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 	zstyle ':completion:*:*:-command-:*:*' group-order alias builtins functions commands
+
+	# Also do history expansion on space
+	bindkey ' ' magic-space
 
 	# Input processing for Line Editor (equivalent to .inputrc)
 	KEYTIMEOUT=1
