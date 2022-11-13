@@ -1,7 +1,9 @@
 # .bashrc
+# .zshrc
+# This file can be parsed by both succesfully: ln -s .zshrc .bashrc
 
 # Source global definitions
-if [[ -f /etc/bashrc ]]; then
+if [[ -n "${BASH_VERSION-}" && -f /etc/bashrc ]]; then
 	. /etc/bashrc
 fi
 
@@ -68,18 +70,22 @@ fi
 # fi
 
 # Turn on parallel history, de-duplicate last command, ignore commands starting with space
-shopt -s histappend
+[[ -n "${BASH_VERSION-}" ]] && shopt -s histappend
+[[ -n "${ZSH_VERSION-}" ]] && setopt appendhistory && unsetopt extended_history && SAVEHIST=100000
+HISTFILE=~/.bash_history
 HISTFILESIZE=100000
 HISTSIZE=100000
 HISTCONTROL=ignoreboth
-HISTIGNORE="?:??:ls *:pwd:history:history *:exit:logout:df *:du *:ps *:man *:sudo su -:su -"
+HISTIGNORE="?:??:ls *:pwd:bash:zsh:history:history *:exit:logout:df *:du *:ps *:man *:sudo su -:su -"
 
 # Turn on window resize checking
-shopt -s checkwinsize
+[[ -n "${BASH_VERSION-}" ]] && shopt -s checkwinsize
 
 # Jobs running when exiting
-shopt -s checkjobs
-shopt -s huponexit
+[[ -n "${BASH_VERSION-}" ]] && shopt -s checkjobs
+[[ -n "${ZSH_VERSION-}" ]] && setopt check_jobs
+[[ -n "${BASH_VERSION-}" ]] && shopt -s huponexit
+[[ -n "${ZSH_VERSION-}" ]] && setopt hup
 
 get_time() {
 	local t=$(date +%H:%M)
@@ -104,13 +110,15 @@ long_venv_prompt() {
 	fi
 }
 
-get_jobs() {
-	local j='\j'
-	local jj="${j@P}"
-	if [[ "$jj" -gt 0 ]]; then
-		printf ' ⏳%s' "$jj"
-	fi
-}
+if [[ -n "${BASH_VERSION-}" ]]; then
+	get_jobs() {
+		local j='\j'
+		local jj="${j@P}"
+		if [[ "$jj" -gt 0 ]]; then
+			printf ' ⏳%s' "$jj"
+		fi
+	}
+fi
 
 get_ssh() {
 	if [[ -n "$SSH_CLIENT" || -n "$SSH_TTY" ]]; then
@@ -124,42 +132,57 @@ red_if_root() {
 	fi
 }
 
-PS1="\[\$(red_if_root)\][\u@\h\$(get_ssh) \W\[\e[01m\]\$(get_jobs)\$(get_git_branch)\$(get_venv)\[\e[00m\$(red_if_root)\]]\$(long_venv_prompt)\\$\[\e[00m\] "
-PS2=
+[[ -n "${BASH_VERSION-}" ]] && PS1="\[\$(red_if_root)\][\u@\h\$(get_ssh) \W\[\e[01m\]\$(get_jobs)\$(get_git_branch)\$(get_venv)\[\e[00m\$(red_if_root)\]]\$(long_venv_prompt)\\$\[\e[00m\] "
+if [[ -n "${ZSH_VERSION-}" ]]; then
+	zmodload zsh/datetime
+	setopt prompt_subst
+	PROMPT='[%n@%m$(get_ssh) %2~%B%(1j. 💻%j.)$(get_git_branch)$(get_venv)%b]%# '
+fi
 
-preexec() {
+[[ -n "${BASH_VERSION-}" ]] && PS2=
+
+__vte_preexec() {
 	STARTTIME=$EPOCHSECONDS
 }
 
-postexec() {
-	STARTTIME=$(HISTTIMEFORMAT='%s ' history 1 | awk '{print $2}')
-}
-
-precmd() {
-	local st=$(HISTTIMEFORMAT='%s ' history 1 | awk '{print $2}')
-	if [[ -z "$STARTTIME" || (-n "$STARTTIME" && "$STARTTIME" -ne "$st") ]]; then
+__vte_precmd() {
+	# Workaround: we use history as preexec runs inside a subshell in bash and STARTTIME is not available
+	if [[ -n "${BASH_VERSION-}" ]]; then
+		local st=$(HISTTIMEFORMAT='%s ' history 1 | awk '{print $2}')
+		if [[ -z "$STARTTIME" || (-n "$STARTTIME" && "$STARTTIME" -ne "$st") ]]; then
+			ENDTIME=$EPOCHSECONDS
+			STARTTIME=$st
+		else
+			ENDTIME=0
+		fi
+	elif [[ -n "${ZSH_VERSION-}" ]]; then
 		ENDTIME=$EPOCHSECONDS
-		STARTTIME=$st
-	else
-		ENDTIME=0
+		[[ -z "$STARTTIME" ]] && STARTTIME=$ENDTIME
 	fi
 }
 
 # Notify OS of local folder URL
 __vte_osc7() {
-	local hostname='\h'
-	hostname="${hostname@P}"
+	if [[ -n "${BASH_VERSION-}" ]]; then
+		local hostname='\h'
+		hostname="${hostname@P}"
+	elif [[ -n "${ZSH_VERSION-}" ]]; then
+		local hostname="%m"
+		hostname="${(%%)hostname}"
+	fi
 	printf '\e]7;file://%s%s\e\\' "${hostname}" "$(/usr/libexec/vte-urlencode-cwd)"
 }
 
 # Notify kitty when command completes (similar styling as OSC 777 on gnome-terminal)
-# Parameters: $1 = command
-# Workaround: we use postexec as preexec runs inside a subshell
 __vte_osc99() {
-	local command=$(HISTTIMEFORMAT= history 1 | sed 's/^ *[0-9]\+ *//')
-	precmd
-	# postexec
-	if ((ENDTIME - STARTTIME >= 300)); then
+	if [[ -n "${BASH_VERSION-}" ]]; then
+		local command=$(HISTTIMEFORMAT= history 1 | sed 's/^ *[0-9]\+ *//')
+	elif [[ -n "${ZSH_VERSION-}" ]]; then
+		local command=$(fc -l -t '' -1 -1 2>/dev/null | sed 's/^ *[0-9]\+ *//')
+	fi
+		
+	__vte_precmd
+	if ((ENDTIME - STARTTIME >= 10)); then
 		printf '\e]99;d=0:p=title;Command completed\e\\'
 		printf '\e]99;d=1:p=body;%s\e\\' "${command//[[:cntrl:]]}"
 	fi
@@ -167,12 +190,16 @@ __vte_osc99() {
 
 # For timing how long a command took to run
 __vte_osc99pre() {
-	preexec
+	__vte_preexec
 }
 
 # Notify urxvt and gnome-terminal (for non-kitty usage)
-# Parameters: $1 = command
 __vte_osc777() {
+	if [[ -n "${BASH_VERSION-}" ]]; then
+		local command=$(HISTTIMEFORMAT= history 1 | sed 's/^ *[0-9]\+ *//')
+	elif [[ -n "${ZSH_VERSION-}" ]]; then
+		local command=$(fc -l -t '' -1 -1 2>/dev/null | sed 's/^ *[0-9]\+ *//')
+	fi
 	printf '\e]777;notify;Command completed;%s\e\\' "${command//;/ }"
 	printf '\e]777;precmd\e\\'
 }
@@ -204,12 +231,20 @@ __vte_osc0() {
 		lc="$(localectl | awk 'BEGIN{ORS=" "}/X11/{print $3}')"
 	fi
 
-	local uhp='$ttydev $ttyspeed $LANG $lc \s v\v \u@\h:\w'
-	uhp="${uhp@P}"
+	local uhp="$ttydev $ttyspeed | $LANG $lc"
+	if [[ -n "${BASH_VERSION-}" ]]; then
+		uhp="$uhp | \s v\v | \u@\h:\w"
+		uhp="${uhp@P}"
+	elif [[ -n "${ZSH_VERSION-}" ]]; then
+		local uhp0="%n@%m:%2~"
+		uhp="$uhp | zsh v"${ZSH_VERSION-}" | ${(%%)uhp0}"
+	fi
 	uhp="${uhp//[[:cntrl:]]}"
 
 	printf '\e]0;%s\e\\' "$uhp"
 }
+
+[[ -n "${ZSH_VERSION-}" ]] && autoload -Uz add-zsh-hook
 
 case "$TERM" in
 	*kitty)
@@ -220,11 +255,13 @@ case "$TERM" in
 			__vte_osc99
 		}
 
-		PS0=$(__vte_osc99pre)
-		PROMPT_COMMAND=__vte_prompt_command
+		[[ -n "${BASH_VERSION-}" ]] && PS0=$(__vte_osc99pre)
+		[[ -n "${ZSH_VERSION-}" ]] && add-zsh-hook preexec __vte_osc99pre
+		[[ -n "${BASH_VERSION-}" ]] && PROMPT_COMMAND=__vte_prompt_command
+		[[ -n "${ZSH_VERSION-}" ]] && add-zsh-hook precmd __vte_prompt_command
 		;;
 
-	xterm*|vte*)
+	xterm*|vte*|gnome*)
 		alias ssh='ssh -ax -o ServerAliveInterval=5 -o ServerAliveCountMax=1'
 
 		__vte_prompt_command() {
@@ -233,15 +270,18 @@ case "$TERM" in
 			__vte_osc7
 		}
 
-		PS0=$(__vte_osc777pre)
-		PROMPT_COMMAND=__vte_prompt_command
+		[[ -n "${BASH_VERSION-}" ]] && PS0=$(__vte_osc777pre)
+		[[ -n "${ZSH_VERSION-}" ]] && add-zsh-hook preexec __vte_osc777pre
+		[[ -n "${BASH_VERSION-}" ]] && PROMPT_COMMAND=__vte_prompt_command
+		[[ -n "${ZSH_VERSION-}" ]] && add-zsh-hook precmd __vte_prompt_command
 		;;
 
 	screen*)
 		alias ssh='ssh -ax -o ServerAliveInterval=5 -o ServerAliveCountMax=1'
 
-		PS0=
-		PROMPT_COMMAND=__vte_osc0
+		[[ -n "${BASH_VERSION-}" ]] && PS0=
+		[[ -n "${BASH_VERSION-}" ]] && PROMPT_COMMAND=__vte_osc0
+		[[ -n "${ZSH_VERSION-}" ]] && add-zsh-hook precmd __vte_osc0
 		;;
 
 	*)
@@ -250,4 +290,172 @@ esac
 
 # Prevent annoying PackageKit-command-not-found messages
 unset -f command_not_found_handle
+[[ -n "${ZSH_VERSION-}" ]] && unset -f command_not_found_handler
 
+# zsh specific
+if [[ -n "${ZSH_VERSION-}" ]]; then
+	# Beep on error
+	setopt beep
+
+	# Show error when unable to complete
+	setopt nomatch
+
+	# Do not enter directory if specified on command line
+	unsetopt auto_cd
+
+	# Do not glob in strange places
+	unsetopt extendedglob
+
+	# Job updates only when prompt is there
+	unsetopt notify
+
+	# Keybindings
+	bindkey -e
+
+	# Configure autocompletion
+	autoload -Uz compinit
+	compinit
+
+	# Completion
+	zstyle ':completion:*' completer _complete _approximate _ignored
+	zstyle ':completion:*' menu select
+
+	# Group by description
+	zstyle ':completion:*' group-name ''
+	zstyle ':completion:*:descriptions' format '--- %d ---%f'
+
+	zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+	zstyle ':completion:*:*:-command-:*:*' group-order alias builtins functions commands
+
+	# Input processing for Line Editor (equivalent to .inputrc)
+	KEYTIMEOUT=1
+	bindkey -s "\e\e" ""
+	bindkey -s "\e[" ""
+	bindkey -s "\eO" ""
+
+	# Nav Cluster
+	## Home moves to the beginning of line
+	### freebsd and vte
+	bindkey "\e[H" beginning-of-line
+	### non-RH/Debian xterm and vte in keypad app mode
+	bindkey "\eOH" beginning-of-line
+	### linux console and RH/Debian xterm
+	bindkey "\e[1~" beginning-of-line
+	### rxvt
+	bindkey "\e[7~" beginning-of-line
+
+	## End moves to the end of line
+	### freebsd and vte
+	bindkey "\e[F" end-of-line
+	### non-RH/Debian xterm and vte in keypad app mode
+	bindkey "\eOF" end-of-line
+	### linux console and RH/Debian xterm
+	bindkey "\e[4~" end-of-line
+	### rxvt
+	bindkey "\e[8~" end-of-line
+
+	## PgUp and PgDn search backward and forward
+	bindkey "\e[5~" history-search-backward
+	bindkey "\e[6~" history-search-forward
+
+	## Insert key switches to overwrite mode
+	bindkey "\e[2~" overwrite-mode
+
+	## Delete key actually deletes
+	bindkey "\e[3~" delete-char
+
+	## M-RightArrow has legacy functionality
+	### freebsd and vte
+	bindkey "\e[1;3C" forward-word
+	### MacOS
+	bindkey "\e[3C" forward-word
+
+	## C-RightArrow has legacy functionality
+	### freebsd and vte
+	bindkey "\e[1;5C" forward-word
+	### rxvt
+	bindkey "\eOc" forward-word
+	### MacOS
+	bindkey "\e[5C" forward-word
+
+	## M-LeftArrow has legacy functionality
+	### freebsd and vte
+	bindkey "\e[1;3D" backward-word
+	### MacOS
+	bindkey "\e[3D" backward-word
+
+	## C-LeftArrow has legacy functionality
+	### freebsd and vte
+	bindkey "\e[1;5D" backward-word
+	### rxvt
+	bindkey "\eOd" backward-word
+	### MacOS
+	bindkey "\e[5D" backward-word
+
+	# Keypad
+	## KP Enter works as expected
+	bindkey "\eOM" accept-line
+
+	## KP keys in Sun mode work as expected
+	bindkey -s "\eOo" "/"
+	bindkey -s "\eOj" "*"
+	bindkey -s "\eOm" "-"
+
+	## KP keys , and + are inter-changed in Sun mode
+	bindkey -s "\eOk" "+"
+	### XTerm compatibility for VT220 comma key
+	bindkey -s "\eO5k" ","
+	bindkey -s "\eO5m" "-"
+	bindkey -s "\eOl" ","
+	bindkey -s "\eOn" "."
+
+	## KP numbers in Sun mode
+	bindkey -s "\eOp" "0"
+	bindkey -s "\eOq" "1"
+	bindkey -s "\eOr" "2"
+	bindkey -s "\eOs" "3"
+	bindkey -s "\eOt" "4"
+	bindkey -s "\eOu" "5"
+	bindkey -s "\eOv" "6"
+	bindkey -s "\eOw" "7"
+	bindkey -s "\eOx" "8"
+	bindkey -s "\eOy" "9"
+
+	## KP = key on Sun and on Realforce 23U/UB (Alt+{KP6,KP1} as a Windows Alt code)
+	bindkey -s "\eOX" "="
+	bindkey -s "\e[1;3C\e[1;3F" "="
+
+	# Navigation
+	## M-b and M-f move to whitespace instead of /
+	bindkey "\eb" backward-word
+	bindkey "\ef" forward-word
+
+	# Kill Ring
+	## M-d and M-Rubout kills to whitespace instead of /
+	bindkey "\ed" kill-word
+	bindkey "\e\C-?" backward-kill-word
+
+	## Ctrl-Delete has legacy functionality
+	bindkey "\e[3;5~" kill-word
+
+	## M-C-h has legacy functionality
+	bindkey "\e\C-h" backward-kill-word
+
+	# Transpose
+	## M-t transposes unix bounded words instead of /
+	bindkey "\et" transpose-words
+
+	## C-x t has legacy functionality
+	bindkey "\C-xt" transpose-words
+
+	# Quoting
+	## M-' quotes text; use marks to prevent issues with existing quotes
+	bindkey -s "\e\'" "\C-w\'\C-y\' "
+
+	## M-" quotes text
+	bindkey -s "\e\"" "\C-w\"\C-y\" "
+
+	# History
+	## M-s does forward search as default C-s is used for flow control
+	bindkey "\es" forward-search-history
+fi
