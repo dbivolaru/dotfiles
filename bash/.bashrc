@@ -73,6 +73,7 @@ fi
 
 # Enable early enough for VTE handling
 if [[ -n "${ZSH_VERSION-}" ]]; then
+	SHELL=$(command -v zsh)
 	zmodload zsh/datetime
 	setopt prompt_subst
 fi
