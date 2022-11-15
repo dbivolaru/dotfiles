@@ -97,8 +97,9 @@ HISTIGNORE="?:??:ls *:pwd:bash:zsh:history:history *:exit:logout:df *:du *:ps *:
 [[ -n "${ZSH_VERSION-}" ]] && setopt hup
 
 get_time() {
+	local last_ec=$?
 	local t=$(date +%H:%M)
-	printf '[%s]' "$t"
+	printf 'EC %s | %s' "$last_ec" "$t"
 }
 
 get_git_branch() {
