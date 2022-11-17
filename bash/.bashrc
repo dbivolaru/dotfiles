@@ -14,6 +14,8 @@ export GOPATH="$HOME/go"
 export PATH="${PATH:+${PATH}:}$HOME/.local/bin:$HOME/bin:$HOME/scripts:$GOPATH/bin"
 
 # Kubernetes environments
+[[ -n "${ZSH_VERSION-}" ]] && unsetopt nomatch
+[[ -d ~/.kube ]] || mkdir -p ~/.kube
 for k in ~/.kube/*; do
 	[[ -f $k ]] || continue
 	export KUBECONFIG="${KUBECONFIG+${KUBECONFIG}:}$k"
@@ -199,7 +201,8 @@ __vte_osc99() {
 	elif [[ -n "${ZSH_VERSION-}" ]]; then
 		local command=$(fc -l -t '' -1 -1 2>/dev/null | sed 's/^ *[0-9]\+ *//')
 	fi
-		
+	[[ "${command%% *}" == vim ]] && STARTTIME=$EPOCHSECONDS && return 0
+
 	__vte_precmd
 	if ((ENDTIME - STARTTIME >= 300)); then
 		printf '\e]99;d=0:p=title;Command completed\e\\'
