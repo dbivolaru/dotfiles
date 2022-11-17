@@ -10,8 +10,14 @@ elif [[ -n "${ZSH_VERSION-}" && -f /etc/zshrc ]]; then
 fi
 
 # User specific environment and startup programs
-GOPATH=$HOME/go
-PATH=$PATH:$HOME/.local/bin:$HOME/bin:$HOME/scripts:$GOPATH/bin
+export GOPATH="$HOME/go"
+export PATH="${PATH:+${PATH}:}$HOME/.local/bin:$HOME/bin:$HOME/scripts:$GOPATH/bin"
+
+# Kubernetes environments
+for k in ~/.kube/*; do
+	[[ -f $k ]] || continue
+	export KUBECONFIG="${KUBECONFIG+${KUBECONFIG}:}$k"
+done
 
 # Setup podman in place of docker (including rootless detection)
 if [[ -x "$(command -v podman)" ]]; then
@@ -19,7 +25,7 @@ if [[ -x "$(command -v podman)" ]]; then
 	if [[ -x "$(command -v systemctl)" ]]; then
 		systemctl --user is-active podman.socket >/dev/null 2>&1; podman_rootless=$?
 		if [[ -S "/run/user/$UID/podman/podman.sock" && $podman_rootless -eq 0 ]]; then
-			DOCKER_HOST=unix:///run/user/$UID/podman/podman.sock
+			export DOCKER_HOST="unix:///run/user/$UID/podman/podman.sock"
 		fi
 	fi
 fi
@@ -52,17 +58,17 @@ bindiff() { diff --color=auto -ud <(xxd -g 1 "$1") <(xxd -g 1 "$2") "${@:3}"; }
 if [[ -x "$(command -v vimx)" && -n "$DISPLAY" ]]; then
 	alias vi='vimx'
 	alias vim='vimx'
-	EDITOR='vimx'
+	export EDITOR='vimx'
 else
 	alias vi='vim'
-	EDITOR='vim'
+	export EDITOR='vim'
 fi
-VIMRUNTIME="$($EDITOR --version | awk ' /f-b/ { gsub(/["]/,"",$NF); print $NF }')"
-MERGE="vimdiff"
-VIRTUAL_ENV_DISABLE_PROMPT=1
+export VIMRUNTIME="$($EDITOR --version | awk ' /f-b/ { gsub(/["]/,"",$NF); print $NF }')"
+export MERGE="vimdiff"
+export VIRTUAL_ENV_DISABLE_PROMPT=1
 
 if [[ -x "$(command -v uname)" ]]; then
-	HOSTNAME=$(uname -n)
+	export HOSTNAME="$(uname -n)"
 fi
 
 # TODO Kitty integration ... but ours is so much better
@@ -72,20 +78,21 @@ fi
 # fi
 
 # Enable early enough for VTE handling
+[[ -n "${BASH_VERSION-}" ]] && export SHELL="$(command -v bash)"
 if [[ -n "${ZSH_VERSION-}" ]]; then
-	SHELL=$(command -v zsh)
+	export SHELL="$(command -v zsh)"
 	zmodload zsh/datetime
 	setopt prompt_subst
 fi
 
 # Turn on parallel history, de-duplicate last command, ignore commands starting with space
 [[ -n "${BASH_VERSION-}" ]] && shopt -s histappend
-[[ -n "${ZSH_VERSION-}" ]] && setopt appendhistory && unsetopt extended_history && SAVEHIST=100000
-HISTFILE=~/.bash_history
-HISTFILESIZE=100000
-HISTSIZE=100000
-HISTCONTROL=ignoreboth
-HISTIGNORE="?:??:ls *:pwd:bash:zsh:history:history *:exit:logout:df *:du *:ps *:man *:sudo su -:su -"
+[[ -n "${ZSH_VERSION-}" ]] && setopt appendhistory && unsetopt extended_history && export SAVEHIST=100000
+export HISTFILE=~/.bash_history
+export HISTFILESIZE=100000
+export HISTSIZE=100000
+export HISTCONTROL=ignoreboth
+export HISTIGNORE="?:??:ls *:pwd:bash:zsh:history:history *:exit:logout:df *:du *:ps *:man *:sudo su -:su -"
 
 # Turn on window resize checking
 [[ -n "${BASH_VERSION-}" ]] && shopt -s checkwinsize
@@ -98,7 +105,7 @@ HISTIGNORE="?:??:ls *:pwd:bash:zsh:history:history *:exit:logout:df *:du *:ps *:
 
 get_time() {
 	local last_ec=$?
-	local t=$(date +%H:%M)
+	local t="$(date +%H:%M)"
 	printf 'EC %s | %s' "$last_ec" "$t"
 }
 
@@ -306,6 +313,18 @@ esac
 unset -f command_not_found_handle
 [[ -n "${ZSH_VERSION-}" ]] && unset -f command_not_found_handler
 
+# bash specific
+if [[ -n "${BASH_VERSION-}" ]]; then
+	# Completion
+	[[ -d ~/.bash_completion ]] || mkdir -p ~/.bash_completion
+
+	# Completions for kubectl
+	if [[ -x $(command -v kubectl) ]]; then
+		[[ -f ~/.bash_completion/kubectl ]] || kubectl completion bash >~/.bash_completion/kubectl
+		[[ -f ~/.bash_completion/kubectl ]] && source ~/.bash_completion/kubectl
+	fi
+fi
+
 # zsh specific
 if [[ -n "${ZSH_VERSION-}" ]]; then
 	# Beep on error
@@ -335,6 +354,13 @@ if [[ -n "${ZSH_VERSION-}" ]]; then
 	# Completion
 	zstyle ':completion:*' completer _complete _approximate _ignored
 	zstyle ':completion:*' menu select
+	[[ -d ~/.zsh_completion ]] || mkdir -p ~/.zsh_completion
+
+	# Completions for kubectl
+	if [[ $commands[kubectl] ]]; then
+		[[ -f ~/.zsh_completion/kubectl ]] || kubectl completion zsh >~/.zsh_completion/kubectl
+		[[ -f ~/.zsh_completion/kubectl ]] && source ~/.zsh_completion/kubectl
+	fi
 
 	# Group by description
 	zstyle ':completion:*' group-name ''
