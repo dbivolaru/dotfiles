@@ -1,0 +1,33 @@
+#/usr/bin/env bash
+set -x
+
+node=${1}
+nodeName=$(kubectl get node ${node} -o template --template='{{index .metadata.labels "kubernetes.io/hostname"}}')
+nodeSelector='"nodeSelector": { "kubernetes.io/hostname": "'${nodeName:?}'" },'
+podName=${USER}-support-${node}
+
+kubectl run ${podName:?} --restart=Never -it --rm --image overriden --overrides '
+{
+  "spec": {
+    "hostPID": true,
+    "hostNetwork": true,
+    '"${nodeSelector?}"'
+    "tolerations": [{
+        "operator": "Exists"
+    }],
+    "containers": [
+      {
+        "name": "support",
+        "image": "fedora:36",
+        "command": [
+          "/usr/bin/bash", "-l"
+        ],
+        "stdin": true,
+        "tty": true,
+        "securityContext": {
+          "privileged": true
+        }
+      }
+    ]
+  }
+}' --attach "$@"
