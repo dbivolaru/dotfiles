@@ -42,6 +42,8 @@ set keyseq-timeout 1
 "\e\e":
 "\e[": skip-csi-sequence
 "\eO": skip-csi-sequence
+"\e\e[": skip-csi-sequence
+"\e\eO": skip-csi-sequence
 
 $if mode=emacs
 # Nav Cluster

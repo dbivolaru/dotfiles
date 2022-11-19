@@ -107,7 +107,7 @@ def get_active_music():
                 )
             if props['PlaybackStatus'] == 'Playing':
                 break
-    return (len(ret) - 2 * len(rst) - len(normal), ret) if ret else (1, '')
+    return (len(ret) - 2 * len(rst) - len(normal), ret) if ret and len(ret) > 3 else (1, '')
 
 
 def draw_tab(

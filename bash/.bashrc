@@ -376,10 +376,19 @@ if [[ -n "${ZSH_VERSION-}" ]]; then
 	bindkey ' ' magic-space
 
 	# Input processing for Line Editor (equivalent to .inputrc)
-	KEYTIMEOUT=1
+	export KEYTIMEOUT=1
+	function skip-csi-sequence() {
+		local key
+		while read -sk key && (( $((#key)) < 0x40 || $((#key)) > 0x7E )); do
+			# empty body
+		done
+	}
+	zle -N skip-csi-sequence
 	bindkey -s "\e\e" ""
-	bindkey -s "\e[" ""
-	bindkey -s "\eO" ""
+	bindkey "\e[" skip-csi-sequence
+	bindkey "\eO" skip-csi-sequence
+	bindkey "\e\e[" skip-csi-sequence
+	bindkey "\e\eO" skip-csi-sequence
 
 	# Nav Cluster
 	## Home moves to the beginning of line
