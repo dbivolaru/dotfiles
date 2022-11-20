@@ -158,9 +158,11 @@ red_if_root() {
 }
 
 [[ -n "${BASH_VERSION-}" ]] && PS1="\[\$(red_if_root)\][\u@\h\$(get_ssh) \W\[\e[01m\]\$(get_jobs)\$(get_git_branch)\$(get_venv)\[\e[00m\$(red_if_root)\]]\$(long_venv_prompt)\\$\[\e[00m\] "
-[[ -n "${ZSH_VERSION-}" ]] && PROMPT='$(red_if_root)[%n@%m$(get_ssh) %2~%B$(get_jobs)$(get_git_branch)$(get_venv)%b%f$(red_if_root)]%(!.#.$)%b%f '
-[[ -n "${BASH_VERSION-}" ]] && PS2=
-[[ -n "${ZSH_VERSION-}" ]] && RPROMPT='$(get_time)'
+[[ -n "${ZSH_VERSION-}" ]] && PS1='$(red_if_root)[%n@%m$(get_ssh) %2~%B$(get_jobs)$(get_git_branch)$(get_venv)%b%f$(red_if_root)]%(!.#.$)%b%f '
+[[ -n "${ZSH_VERSION-}" ]] && RPS1='$(get_time)'
+
+PS2='  '
+[[ -n "${ZSH_VERSION-}" ]] && RPS2='%^'
 
 __vte_preexec() {
 	STARTTIME=$EPOCHSECONDS
