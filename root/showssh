@@ -1,0 +1,5 @@
+#!/bin/bash
+# Shows all sshd login attempts
+
+cat /var/log/secure | grep 'sshd.*password for'
+

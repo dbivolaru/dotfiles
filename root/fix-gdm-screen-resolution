@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cp /home/el/.config/monitors.xml /var/lib/gdm/.config/
+

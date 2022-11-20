@@ -1,0 +1,4 @@
+#!/bin/bash
+
+timedatectl
+hwclock --adjust --test --verbose

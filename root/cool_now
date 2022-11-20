@@ -1,0 +1,2 @@
+#!/bin/bash
+while true; do i8kfan 2 2; done

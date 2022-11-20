@@ -1,0 +1,15 @@
+#!/bin/bash
+
+vim /etc/default/grub
+
+read -rsn1 -p "Press any key to continue (grub2-mkconfig && dracut)"; echo
+
+echo "*****"
+echo "* grub2-mkconfig"
+echo "*****"
+grub2-mkconfig -o /etc/grub2$(test -d /sys/firmware/efi && echo -efi).cfg
+
+echo "*****"
+echo "* dracut"
+echo "*****"
+dracut -f --regenerate-all

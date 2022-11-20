@@ -1,0 +1,25 @@
+#!/bin/bash
+
+echo "*** Removing non-standard certificate files"
+mkdir -p /root/cert.bak
+rpm -Vv ca-certificates | awk '$1!="........." && $2!="d" {system("mv -v " $NF " /root/cert.bak")}'
+
+echo "*** Installing standard certificate files"
+dnf check-update ca-certificates; (($?==100)) && dnf update -y ca-certificates || dnf reinstall -y ca-certificates
+
+echo "*** Validation (1/2)"
+echo "Expected:"
+echo "/etc/pki/ca-trust/source/ca-bundle.legacy.crt (original)"
+echo "/etc/pki/ca-trust/source/README (original)"
+echo "Actuals:"
+find /etc/pki/ca-trust/source{,/anchors} -maxdepth 1 -not -type d -exec ls -1 {} +
+echo "*** Validation (2/2)"
+echo "Expected:"
+echo "/usr/share/pki/ca-trust-source/ca-bundle.trust.p11-kit (original)"
+echo "/usr/share/pki/ca-trust-source/README (original)"
+echo "Actuals:"
+find /usr/share/pki/ca-trust-source{,/anchors} -maxdepth 1 -not -type d -exec ls -1 {} +
+
+read -p "Press ENTER to update ca-trust now. Otherwise abort now, please."
+update-ca-trust extract
+echo "Updated."

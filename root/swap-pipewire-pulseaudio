@@ -1,0 +1,6 @@
+#!/bin/bash
+
+systemctl --user --now disable pipewire pipewire-pulse wireplumber
+dnf swap pipewire-pulseaudio pulseaudio --allowerasing
+dnf install alsa-plugins-pulseaudio
+echo "Please reboot"

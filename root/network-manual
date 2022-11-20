@@ -1,0 +1,11 @@
+#!/bin/sh
+
+networkctl up ens192
+sleep 5
+dhclient -r
+sleep 5
+dhclient -4
+sleep 5
+resolvectl dns ens192 192.168.1.1
+sleep 5
+systemctl restart systemd-networkd-wait-online
