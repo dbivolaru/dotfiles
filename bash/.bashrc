@@ -378,9 +378,11 @@ if [[ -n "${ZSH_VERSION-}" ]]; then
 	# Input processing for Line Editor (equivalent to .inputrc)
 	export KEYTIMEOUT=1
 	function skip-csi-sequence() {
+		# Ref: bash/lib/readline/text.c: rl_skip_csi_sequence()
 		local key
-		while read -sk key && (( $((#key)) < 0x40 || $((#key)) > 0x7E )); do
-			# empty body
+		read -sk key
+		while (( $((#key)) >= 0x20 && $((#key)) < 0x40 )); do
+			read -sk key
 		done
 	}
 	zle -N skip-csi-sequence
