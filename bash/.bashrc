@@ -43,7 +43,11 @@ fi
 [[ "$-" == *i* ]] || return 0
 
 # Set umask
-umask 027
+if [[ "$EUID" -eq 0 ]]; then
+	umask 022
+else
+	umask 027
+fi
 
 # User specific aliases and functions
 alias ll='ls -lh --color=auto --group-directories-first' 2>/dev/null
@@ -203,7 +207,7 @@ __vte_osc99() {
 	elif [[ -n "${ZSH_VERSION-}" ]]; then
 		local command=$(fc -l -t '' -1 -1 2>/dev/null | sed 's/^ *[0-9]\+ *//')
 	fi
-	[[ "${command%% *}" == vim ]] && STARTTIME=$EPOCHSECONDS && return 0
+	[[ "${command%% *}" == vim || "${command%% *}" == sudo ]] && STARTTIME=$EPOCHSECONDS && return 0
 
 	__vte_precmd
 	if ((ENDTIME - STARTTIME >= 300)); then
