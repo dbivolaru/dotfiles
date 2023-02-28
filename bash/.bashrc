@@ -28,6 +28,9 @@ if [[ -x "$(command -v podman)" ]]; then
 		systemctl --user is-active podman.socket >/dev/null 2>&1; podman_rootless=$?
 		if [[ -S "/run/user/$UID/podman/podman.sock" && $podman_rootless -eq 0 ]]; then
 			export DOCKER_HOST="unix:///run/user/$UID/podman/podman.sock"
+			export BUILDAH_ISOLATION=rootless
+		else
+			export BUILDAH_ISOLATION=oci
 		fi
 	fi
 fi
@@ -163,7 +166,8 @@ red_if_root() {
 
 [[ -n "${BASH_VERSION-}" ]] && PS1="\[\$(red_if_root)\][\u@\h\$(get_ssh) \W\[\e[01m\]\$(get_jobs)\$(get_git_branch)\$(get_venv)\[\e[00m\$(red_if_root)\]]\$(long_venv_prompt)\\$\[\e[00m\] "
 [[ -n "${ZSH_VERSION-}" ]] && PS1='$(red_if_root)[%n@%m$(get_ssh) %2~%B$(get_jobs)$(get_git_branch)$(get_venv)%b%f$(red_if_root)]%(!.#.$)%b%f '
-[[ -n "${ZSH_VERSION-}" ]] && RPS1='$(get_time)'
+# Only show right side when in the base shell
+[[ -n "${ZSH_VERSION-}" && -r /proc/$PPID/comm ]] && grep -Fxq -e kitty -e zsh -e make /proc/$PPID/comm && RPS1='$(get_time)'
 
 PS2='  '
 [[ -n "${ZSH_VERSION-}" ]] && RPS2='%^'
