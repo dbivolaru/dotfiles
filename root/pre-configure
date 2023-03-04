@@ -39,6 +39,9 @@ dnf install -y \
 	java-1.8.0-openjdk \
 	llvm \
 
+git config --global difftool.prompt false
+git config --global diff.tool vimdiff
+
 ################################################################################
 echo "*** Installing tools..."
 dnf install -y \
