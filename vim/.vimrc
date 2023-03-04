@@ -234,6 +234,13 @@ let g:airline_mode_map = {
 let g:ale_sign_column_always=1
 let g:ale_sign_error=' ✘'
 let g:ale_sign_warning=' ⚠'
+let g:ale_echo_msg_error_str='✘ '
+let g:ale_echo_msg_warning_str='⚠ '
+let g:ale_echo_msg_info_str='I '
+let g:ale_echo_msg_format='%severity%%linter%: %code%: %s'
+let g:ale_set_loclist=1
+let g:ale_open_list=0
+let g:ale_set_quickfix=0
 
 "=====================================================
 " Other keyboard shortcuts
@@ -329,7 +336,7 @@ function! AddOtherShortcuts()
   nnoremap <silent> // :nohlsearch<CR>
 
   " Find tags in files (needs vim-fugitive for git_dir function)
-  nnoremap <Leader>t :cexpr[]<BAR>vimgrep! /\C\vTODO\|FIXME/j % <BAR>cwindow<CR>
+  nnoremap <Leader>t :lexpr[]<BAR>lvimgrep! /\C\vTODO\|FIXME/j % <BAR>lopen<CR>
   nnoremap <Leader>gt :cexpr[]<BAR>silent! execute "grep!
                 \ <C-r>=shellescape(fnamemodify(get(b:, 'git_dir', '.'), ':h'))<CR>
                 \ -e 'TODO\\<BAR>FIXME'"<BAR>cwindow<BAR>redraw!<CR>
@@ -339,6 +346,12 @@ function! AddOtherShortcuts()
 
   " Buffer show
   nnoremap <Leader>b :ls<CR>:b<Space>
+
+  " Wrap-around loclist (this over-rides vim-unimpaired functionality)
+  command! -range=1 -bang Lnext try | <count>lnext<bang> | catch /E553/ | lfirst<bang> <count> | endtry
+  command! -range=1 -bang Lprev try | <count>lprev<bang> | catch /E553/ | llast<bang> <count> | endtry
+  nmap <silent> [l :<C-U>exe (v:count ? v:count : "")."Lprev"<CR>zv
+  nmap <silent> ]l :<C-U>exe (v:count ? v:count : "")."Lnext"<CR>zv
 
   " Save anywhere
   silent !stty -ixon
@@ -526,4 +539,5 @@ elseif &term == 'xterm-kitty'
   let &t_ti = &t_ti . "\033]10;#f8f8f2\007\033]11;#272822\007"
   let &t_te = &t_te . "\033]110\007\033]111\007"
   let &t_RV = ""
+  set term=xterm-256color
 endif
