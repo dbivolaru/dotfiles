@@ -1,0 +1,2 @@
+#!/bin/bash
+docker run -it --rm --name=ctop --security-opt label=disable --volume /run/user/1000/podman/podman.sock:/var/run/docker.sock:ro quay.io/vektorlab/ctop:latest
