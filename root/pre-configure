@@ -11,13 +11,16 @@ fi
 ################################################################################
 echo "*** Installing system utilities"
 dnf install -y --allowerasing \
-	mc vim vim-X11 vim-default-editor ctags ripgrep kitty xsel xterm fish sshfs colordiff meld \
-	screen tmux tmux-powerline \
+	zsh mc ranger vim vim-X11 vim-default-editor ctags ripgrep kitty xsel xclip fish sshfs colordiff meld \
+	screen tmux tmux-powerline most \
+	vttest cu xterm rxvt-unicode \
+	arp-scan telnet wireshark openssl iptraf iftop bmon tcptrack nethogs \
+	zram-generator zram-generator-defaults zram tuned tuned-gtk \
 	imwheel \
-	bsd-games cmatrix neofetch \
-	smartmontools htop dnfdragora gnome-tweak-tool dconf-editor \
-	curl cabextract \
-	xterm xorg-x11-fonts* xorg-x11-font-utils fontconfig \
+	bsd-games cmatrix cmatrix-x11-fonts neofetch \
+	smartmontools hdparm htop dnfdragora gnome-tweak-tool dconf-editor \
+	curl cabextract qpdf \
+	xfontsel xorg-x11-fonts* xorg-x11-font-utils fontconfig \
 	gnome-shell-extension-common.noarch \
 	gnome-shell-extension-apps-menu gnome-shell-extension-background-logo \
 	gnome-shell-extension-dash-to-dock gnome-shell-extension-drive-menu \
@@ -27,13 +30,16 @@ dnf install -y --allowerasing \
 	gnome-shell-extension-user-theme gnome-shell-extension-window-list \
 	gnome-shell-extension-workspace-indicator \
 	la-capitaine-cursor-theme la-capitaine-icon-theme \
-	qalculate-gtk \
+	blivet-gui qalculate-gtk \
+	openshot youtube-dl gydl ffmpeg audacity \
 
 ################################################################################
 echo "*** Installing development libraries"
 dnf install -y \
 	git git-extras git-filter-repo \
-	gcc gcc-c++ make binutils automake pkg-config strace \
+	gcc gcc-c++ make binutils automake pkg-config strace tokei \
+	rpm-build rpmdevtools \
+	uglify-js yamllint butane \
 	protobuf-compiler \
 	gobject-introspection-devel cairo-devel gtk3 cairo-gobject-devel \
 	java-1.8.0-openjdk \
@@ -55,7 +61,7 @@ dnf install -y \
 	python3-aiohttp \
 	python3-retrying \
 	python3-urwid \
-	python3-llvmlite
+	python3-llvmlite \
 
 ################################################################################
 echo "*** Installing ZeroMQ..."
@@ -89,9 +95,17 @@ alternatives --config java
 alternatives --config jre_openjdk
 
 # This modules are needed by java
-dnf install gtk-murrine-engine
+dnf install -y gtk-murrine-engine
 echo "/usr/lib64/gtk-3.0/modules/" > /etc/ld.so.conf.d/pk-gtk.conf
 ldconfig
 
 # Replace resolved stub with actual config
 ln -sfv /run/systemd/resolve/resolv.conf /etc/resolv.conf
+
+################################################################################
+echo "*** Installing container support..."
+dnf install -y podman buildah podman-docker
+
+# Fix podman permissions
+chmod 755 /etc/containers/storage.conf
+
