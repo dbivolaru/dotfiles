@@ -275,16 +275,16 @@ function! AddOtherShortcuts()
   inoremap <expr> <Up> (pumvisible() ? '<Up>' : '<C-\><C-o>gk')
 
   " Keyboard folding of code
-  nnoremap <space> za
-  vnoremap <space> zf
+  nnoremap <silent> <Space> za
+  vnoremap <silent> <Space> zf
 
   " Replace default tags goto with list if many matches
   nnoremap <C-]> g<C-]>
 
   " Keyboard jumping from insert mode; avoid messing up autocompletion C-e
   " Note: this overwrites C-a re-insert text and C-e insert character from below
-  inoremap <C-a> <Home>
-  inoremap <C-b> <C-\><C-o>^
+  inoremap <C-b> <Home>
+  inoremap <C-a> <C-\><C-o>^
   inoremap <expr> <C-e> (pumvisible() ? '<C-e>' : '<End>')
   inoremap <M-e> <C-e>
   inoremap <M-y> <C-y>

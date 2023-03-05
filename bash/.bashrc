@@ -92,16 +92,29 @@ if [[ -n "${ZSH_VERSION-}" ]]; then
 	export SHELL="$(command -v zsh)"
 	zmodload zsh/datetime
 	setopt prompt_subst
+	autoload -Uz add-zsh-hook
 fi
 
 # Turn on parallel history, de-duplicate last command, ignore commands starting with space
-[[ -n "${BASH_VERSION-}" ]] && shopt -s histappend
-[[ -n "${ZSH_VERSION-}" ]] && setopt appendhistory && unsetopt extended_history && export SAVEHIST=100000
 export HISTFILE=~/.bash_history
-export HISTFILESIZE=100000
-export HISTSIZE=100000
-export HISTCONTROL=ignoreboth
-export HISTIGNORE="?:??:ls *:pwd:bash:zsh:history:history *:exit:logout:df *:du *:ps *:man *:sudo su -:su -"
+if [[ -n "${BASH_VERSION-}" ]]; then
+	shopt -s histappend
+	export HISTFILESIZE=100000
+	export HISTCONTROL=ignoreboth
+	export HISTIGNORE="?:??:ls *:pwd:bash:zsh:history:history *:exit:logout:df *:du *:ps *:man *:sudo su -:su -"
+	export HISTSIZE=100000
+fi
+if [[ -n "${ZSH_VERSION-}" ]]; then
+	setopt appendhistory
+	unsetopt extended_history
+	export SAVEHIST=100000
+	setopt histignorealldups
+	setopt histignorespace
+	setopt histnofunctions
+	setopt histnostore
+	export HISTORY_IGNORE="(?|??|ls *|pwd|bash|zsh|exit|logout|df *|du *|ps *|man *|sudo su -|su -)"
+	export HISTSIZE=100000
+fi
 
 # Turn on window resize checking
 [[ -n "${BASH_VERSION-}" ]] && shopt -s checkwinsize
@@ -277,8 +290,6 @@ __vte_osc0() {
 
 	printf '\e]0;%s\e\\' "$uhp"
 }
-
-[[ -n "${ZSH_VERSION-}" ]] && autoload -Uz add-zsh-hook
 
 case "$TERM" in
 	*kitty)
