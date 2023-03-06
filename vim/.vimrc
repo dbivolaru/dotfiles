@@ -54,6 +54,7 @@ Plugin 'xolox/vim-session'
 Plugin 'davidhalter/jedi-vim'
 Plugin 'tmhedberg/SimpylFold'
 Plugin 'plytophogy/vim-virtualenv'
+Plugin 'goerz/jupytext.vim'
 
 Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'

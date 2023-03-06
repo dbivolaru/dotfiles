@@ -24,6 +24,7 @@ done
 # Setup podman in place of docker (including rootless detection)
 if [[ -x "$(command -v podman)" ]]; then
 	alias docker=podman
+	alias docker-compose=podman-compose
 	if [[ -x "$(command -v systemctl)" ]]; then
 		systemctl --user is-active podman.socket >/dev/null 2>&1; podman_rootless=$?
 		if [[ -S "/run/user/$UID/podman/podman.sock" && $podman_rootless -eq 0 ]]; then
