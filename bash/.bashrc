@@ -115,6 +115,7 @@ if [[ -n "${ZSH_VERSION-}" ]]; then
 	setopt histnostore
 	export HISTORY_IGNORE="(?|??|ls *|pwd|bash|zsh|exit|logout|df *|du *|ps *|man *|sudo su -|su -)"
 	export HISTSIZE=100000
+	export PROMPT_EOL_MARK=""
 fi
 
 # Turn on window resize checking
