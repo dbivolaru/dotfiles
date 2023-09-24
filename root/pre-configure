@@ -109,3 +109,8 @@ dnf install -y podman buildah podman-docker
 # Fix podman permissions
 chmod 755 /etc/containers/storage.conf
 
+################################################################################
+echo "*** Installing doublecmd..."
+dnf copr enable vondruch/doublecmd 
+dnf install doublecmd-gtk
+
