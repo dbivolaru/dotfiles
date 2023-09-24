@@ -29,6 +29,7 @@ Plugin 'VundleVim/Vundle.vim'
 
 " Support for G commands and []/gc keybinds
 Plugin 'tpope/vim-fugitive'
+Plugin 'tpope/vim-repeat'
 Plugin 'tpope/vim-unimpaired'
 Plugin 'tpope/vim-commentary'
 Plugin 'tpope/vim-surround'
@@ -127,7 +128,7 @@ set noswapfile          " No swap files
 set modelines=5         " Scan only 5 lines if modeline is enabled
 set nomodeline          " No modeline by default
 set wildignore+=*/__pycache__/*,*/venv/*,*/build/*,*/dist/*,*/.git/*,*/*.log,*.ipynb,*.pyc*
-let &grepprg='rg --vimgrep --smart-case -g "!*.{log,ipynb}"'
+let &grepprg='rg --vimgrep --smart-case -g ''!*.{log,ipynb}'''
 
 " Buffers / windows
 set hidden              " When switching buffers, don't save or ask anything
@@ -142,6 +143,10 @@ set smartcase           " Case sensitive if upper letter specified
 " Cursor
 set nocursorcolumn  " Show no column by default
 set nocursorline    " Show no line by default - only in active win
+
+" Session (in case using manually mksession)
+set sessionoptions-=help
+set sessionoptions-=buffers
 
 augroup CursorLineOnlyInActiveWindow
   autocmd!
@@ -286,6 +291,7 @@ function! AddOtherShortcuts()
   " Note: this overwrites C-a re-insert text and C-e insert character from below
   inoremap <C-b> <Home>
   inoremap <C-a> <C-\><C-o>^
+  cnoremap <C-a> <Home>
   inoremap <expr> <C-e> (pumvisible() ? '<C-e>' : '<End>')
   inoremap <M-e> <C-e>
   inoremap <M-y> <C-y>
