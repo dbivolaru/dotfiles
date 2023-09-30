@@ -1,0 +1,5 @@
+#!/bin/bash
+
+[[ -x "$(command -v ascii)" ]] || sudo dnf install ascii
+
+for a in {0..255}; do b="$(printf '%02x' $a)"; c="$(ascii \x$b | cut -d: -f2)"; echo "map$c send_text all \\x$b"; done
