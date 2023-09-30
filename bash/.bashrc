@@ -54,10 +54,10 @@ else
 fi
 
 # User specific aliases and functions
-alias ll='ls -lh --color=auto --group-directories-first' 2>/dev/null
-alias l.='ls -dh .* --color=auto --group-directories-first' 2>/dev/null
-alias ll.='ls -dlh .* --color=auto --group-directories-first' 2>/dev/null
-alias ls='ls -h --color=auto --group-directories-first' 2>/dev/null
+alias ll='ls -lhN --color=auto --group-directories-first' 2>/dev/null
+alias l.='ls -dhN .* --color=auto --group-directories-first' 2>/dev/null
+alias ll.='ls -dlhN .* --color=auto --group-directories-first' 2>/dev/null
+alias ls='ls -hN --color=auto --group-directories-first' 2>/dev/null
 alias diff='diff --color=auto -ud'
 
 lll() { stat --printf="%A %#03a %h %4U %4G %s %.19y %n (%C)\n" * | numfmt --to=iec-i --field=6 --padding=5; }
@@ -368,8 +368,9 @@ if [[ -n "${ZSH_VERSION-}" ]]; then
 	# Job updates only when prompt is there
 	unsetopt notify
 
-	# Keybindings
-	bindkey -e
+	# Keybindings including Meta
+	stty pass8
+	bindkey -em 2>/dev/null
 
 	# Configure autocompletion
 	autoload -Uz compinit && compinit
@@ -539,5 +540,5 @@ if [[ -n "${ZSH_VERSION-}" ]]; then
 
 	# History
 	## M-s does forward search as default C-s is used for flow control
-	bindkey "\es" forward-search-history
+	bindkey "\es" history-incremental-search-forward
 fi

@@ -268,6 +268,15 @@ cnoremap w!! call SudoSave()
 
 " Setup shortcuts at VimEnter
 function! AddOtherShortcuts()
+  " Fix Meta keybindings when running in terminal
+  if !has('gui_running') && !has('nvim')
+    for i in range(char2nr('a'), char2nr('z'))
+      let c = nr2char(i)
+      silent! exe "set <M-".c.">=\<Esc>".c
+    endfor
+    silent! exe "set <M-.>=\<Esc>."
+  endif
+
   " Movement on big linebreak'ed lines; conisder autocompletion handling
   nnoremap <expr> j (v:count == 0 ? 'gj' : 'j')
   nnoremap <expr> k (v:count == 0 ? 'gk' : 'k')
@@ -289,10 +298,13 @@ function! AddOtherShortcuts()
 
   " Keyboard jumping from insert mode; avoid messing up autocompletion C-e
   " Note: this overwrites C-a re-insert text and C-e insert character from below
+  "       we replace C-a with M-. to insert last inserted text
+  "       we replace C-e with M-e to insert character from next line
   inoremap <C-b> <Home>
   inoremap <C-a> <C-\><C-o>^
   cnoremap <C-a> <Home>
   inoremap <expr> <C-e> (pumvisible() ? '<C-e>' : '<End>')
+  inoremap <M-.> <C-r>.
   inoremap <M-e> <C-e>
   inoremap <M-y> <C-y>
 
@@ -300,7 +312,11 @@ function! AddOtherShortcuts()
   inoremap <expr> <CR> (pumvisible() ? '<C-y>' : '<C-g>u<CR>')
 
   " Write undo history when using register commands
+  " This works well with autocompletion without using <expr> pumvisible()
   inoremap <C-r> <C-g>u<C-r>
+
+  " Additional motions - function name
+  onoremap <silent> F :<C-u>normal! 0f(hviw<CR>
 
   " Modeline magic
   nnoremap <Leader>m :setl modeline <BAR>e<CR>
