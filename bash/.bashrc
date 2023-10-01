@@ -2,6 +2,21 @@
 # .zshrc
 # This file can be parsed by both succesfully: ln -s .zshrc .bashrc
 
+# Set to 1 to time the script
+# :nnoremap Q klyiWlllljciW<C-r>=printf('%.6f', <C-r>"-<C-r>0)<CR><C-c>kl
+_BENCHMARK=0
+
+if [[ $_BENCHMARK -ne 0 ]]; then
+	if [[ -n "${BASH_VERSION-}" ]]; then
+		PS4="+ \$EPOCHREALTIME\011 "
+		exec 3>&2 2>/tmp/bash.benchmark.$$.log
+	elif [[ -n "${ZSH_VERSION-}" ]]; then
+		PS4=$'+ %D{%s.%6.}\011 '
+		exec 3>&2 2>/tmp/zsh.benchmark.$$.log
+	fi
+	set -x
+fi
+
 # Source global definitions
 if [[ -n "${BASH_VERSION-}" && -f /etc/bashrc ]]; then
 	. /etc/bashrc
@@ -25,14 +40,14 @@ done
 if [[ -x "$(command -v podman)" ]]; then
 	alias docker=podman
 	alias docker-compose=podman-compose
-	if [[ -x "$(command -v systemctl)" ]]; then
-		systemctl --user is-active podman.socket >/dev/null 2>&1; podman_rootless=$?
-		if [[ -S "/run/user/$UID/podman/podman.sock" && $podman_rootless -eq 0 ]]; then
-			export DOCKER_HOST="unix:///run/user/$UID/podman/podman.sock"
-			export BUILDAH_ISOLATION=rootless
-		else
-			export BUILDAH_ISOLATION=oci
+	if [[ -S "$XDG_RUNTIME_DIR/podman/podman.sock" ]]; then
+		export DOCKER_HOST="unix://$XDG_RUNTIME_DIR/podman/podman.sock"
+		export BUILDAH_ISOLATION=rootless
+	else
+		if [[ -S "/run/podman/podman.sock" ]]; then
+			export DOCKER_HOST="unix:///run/podman/podman.sock"
 		fi
+		export BUILDAH_ISOLATION=oci
 	fi
 fi
 
@@ -73,7 +88,10 @@ else
 	alias vi='vim'
 	export EDITOR='vim'
 fi
-export VIMRUNTIME="$($EDITOR --version | awk ' /f-b/ { gsub(/["]/,"",$NF); print $NF }')"
+# This is slow
+# export VIMRUNTIME="$($EDITOR --version | awk ' /fall-back/ { gsub(/["]/,"",$NF); print $NF }')"
+# export VIMRUNTIME="$($EDITOR --cmd 'echo $VIMRUNTIME|q')"
+export VIMRUNTIME="/usr/share/vim/vim90"
 export MERGE="vimdiff"
 export VIRTUAL_ENV_DISABLE_PROMPT=1
 
@@ -226,7 +244,13 @@ __vte_osc99() {
 	elif [[ -n "${ZSH_VERSION-}" ]]; then
 		local command=$(fc -l -t '' -1 -1 2>/dev/null | sed 's/^ *[0-9]\+ *//')
 	fi
-	[[ "${command%% *}" == vim || "${command%% *}" == sudo ]] && STARTTIME=$EPOCHSECONDS && return 0
+	[[ \
+		"${command%% *}" == vim || \
+		"${command%% *}" == mc || \
+		"${command%% *}" == sudo || \
+		"${command%% *}" == bash || \
+		"${command%% *}" == zsh \
+	]] && STARTTIME=$EPOCHSECONDS && return 0
 
 	__vte_precmd
 	if ((ENDTIME - STARTTIME >= 300)); then
@@ -541,4 +565,10 @@ if [[ -n "${ZSH_VERSION-}" ]]; then
 	# History
 	## M-s does forward search as default C-s is used for flow control
 	bindkey "\es" history-incremental-search-forward
+fi
+
+if [[ $_BENCHMARK -ne 0 ]]; then
+	set +x
+	exec 2>&3 3>&-
+	unset $_BENCHMARK
 fi
