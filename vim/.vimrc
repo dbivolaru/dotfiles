@@ -268,15 +268,6 @@ cnoremap w!! call SudoSave()
 
 " Setup shortcuts at VimEnter
 function! AddOtherShortcuts()
-  " Fix Meta keybindings when running in terminal
-  if !has('gui_running') && !has('nvim')
-    for i in range(char2nr('a'), char2nr('z'))
-      let c = nr2char(i)
-      silent! exe "set <M-".c.">=\<Esc>".c
-    endfor
-    silent! exe "set <M-.>=\<Esc>."
-  endif
-
   " Movement on big linebreak'ed lines; conisder autocompletion handling
   nnoremap <expr> j (v:count == 0 ? 'gj' : 'j')
   nnoremap <expr> k (v:count == 0 ? 'gk' : 'k')
@@ -562,5 +553,7 @@ elseif &term == 'xterm-kitty'
   let &t_ti = &t_ti . "\033]10;#f8f8f2\007\033]11;#272822\007"
   let &t_te = &t_te . "\033]110\007\033]111\007"
   let &t_RV = ""
-  set term=xterm-256color
+
+  " Do not set term here, it garbles up Meta- keybindings
+  " set term=xterm-256color
 endif
