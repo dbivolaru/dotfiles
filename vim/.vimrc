@@ -554,6 +554,11 @@ elseif &term == 'xterm-kitty'
   let &t_te = &t_te . "\033]110\007\033]111\007"
   let &t_RV = ""
 
-  " Do not set term here, it garbles up Meta- keybindings
-  " set term=xterm-256color
+  " Disable kitty keyboard protocol as we use legacy VT mode
+  " Also, we disable xterm:mok2 mode
+  " This was added by some people using emacs who wanted additional key combinations
+  " Ref: https://invisible-island.net/xterm/modified-keys.html
+  " Meta keys should work as long as they are sent 8bit (kitty.conf), as it should be
+  set keyprotocol=
+  set term=xterm-256color
 endif
