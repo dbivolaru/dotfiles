@@ -52,16 +52,23 @@ Plugin 'xolox/vim-misc'
 Plugin 'xolox/vim-session'
 
 " Language support
+Plugin 'voithos/vim-python-matchit'
 Plugin 'davidhalter/jedi-vim'
 Plugin 'tmhedberg/SimpylFold'
-Plugin 'plytophogy/vim-virtualenv'
 Plugin 'goerz/jupytext.vim'
 
+" Status
 Plugin 'vim-airline/vim-airline'
 Plugin 'vim-airline/vim-airline-themes'
 
 call vundle#end()
 filetype plugin indent on
+
+" Load bundled plugins
+packadd matchit
+if exists(':Man') != 2
+  runtime ftplugin/man.vim
+endif
 
 "=====================================================
 " General settings
@@ -84,12 +91,15 @@ set synmaxcol=300               " Disable syntax highlighting after 200 cols (fa
 syntax sync minlines=300        " Maximum # of lines to read for determining syntax highlighing
 set backspace=indent,eol,start  " Make sure BS can delete indent, EOL and lines
 set scrolloff=10                " Scroll earlier by 10 lines instead of screen edge
+set sidescroll=1                " Horizontal scroll 1 by 1 (fast terminal)
+set sidescrolloff=5             " Scroll horizontally earlier by 5 columns
 set wildmenu                    " Visual autocomplete for command menu
 set signcolumn=yes              " Always show sign column (syntastic)
 set nosol                       " Don't change cursor column when scrolling
 set incsearch                   " Incremental search
 set complete-=i                 " No include files in completion
 set mouse=nvi                   " Use mouse if available
+set history=1000                " More history
 
 " Command timeouts
 set notimeout ttimeout
@@ -146,7 +156,8 @@ set nocursorline    " Show no line by default - only in active win
 
 " Session (in case using manually mksession)
 set sessionoptions-=help
-set sessionoptions-=buffers
+set sessionoptions-=options
+set viewoptions-=options
 
 augroup CursorLineOnlyInActiveWindow
   autocmd!
@@ -176,7 +187,7 @@ augroup END
 " Code folding
 "=====================================================
 
-set tags^=./.git/tags;
+set tags^=./.git/tags
 
 set foldmethod=syntax   " Fold based on syntax
 set foldcolumn=0        " Display zero (was 3) fold columns
@@ -301,13 +312,18 @@ function! AddOtherShortcuts()
 
   " Write undo history when making a new line; with autocompletion handling
   inoremap <expr> <CR> (pumvisible() ? '<C-y>' : '<C-g>u<CR>')
+  inoremap <expr> <C-u> (pumvisible() ? '<C-u>' : '<C-g>u<C-u>')
 
   " Write undo history when using register commands
   " This works well with autocompletion without using <expr> pumvisible()
   inoremap <C-r> <C-g>u<C-r>
+  inoremap <C-w> <C-g>u<C-w>
 
   " Additional motions - function name
   onoremap <silent> F :<C-u>normal! 0f(hviw<CR>
+
+  " DiffOrig
+  nnoremap <Leader>o :DiffOrig
 
   " Modeline magic
   nnoremap <Leader>m :setl modeline <BAR>e<CR>
