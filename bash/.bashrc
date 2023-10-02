@@ -83,15 +83,27 @@ bindiff() { diff --color=auto -ud <(xxd -g 1 "$1") <(xxd -g 1 "$2") "${@:3}"; }
 if [[ -x "$(command -v vimx)" && -n "$DISPLAY" ]]; then
 	alias vi='vimx'
 	alias vim='vimx'
+	alias vim-safe='vimx -u NONE -U NONE -i NONE -N'
 	export EDITOR='vimx'
 else
-	alias vi='vim'
-	export EDITOR='vim'
+	if [[ -x "$(command -v vim)" ]]; then
+		alias vi='vim'
+		alias vim-safe='vim -u NONE -U NONE -i NONE -N'
+		export EDITOR='vim'
+	else
+		export EDITOR='vi'
+	fi
 fi
-# This is slow
-# export VIMRUNTIME="$($EDITOR --version | awk ' /fall-back/ { gsub(/["]/,"",$NF); print $NF }')"
-# export VIMRUNTIME="$($EDITOR --cmd 'echo $VIMRUNTIME|q')"
-export VIMRUNTIME="/usr/share/vim/vim90"
+
+if [[ -d /usr/share/vim/vim90 ]]; then
+	# Fast guess
+	export VIMRUNTIME="/usr/share/vim/vim90"
+else
+	# This is very slow
+	VIMRUNTIME="$($EDITOR --version | awk ' /fall-back/ { gsub(/["]/,"",$NF); print $NF }')"
+	VIMRUNTIME="$(find $VIMRUNTIME -name defaults.vim)"
+	export VIMRUNTIME="${VIMRUNTIME%/*}"
+fi
 export MERGE="vimdiff"
 export VIRTUAL_ENV_DISABLE_PROMPT=1
 
