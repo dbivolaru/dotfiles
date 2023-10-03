@@ -503,6 +503,22 @@ augroup END
 " vim-session settings
 "=====================================================
 
+try
+  " Might look slow but it's actually very reasonable
+  let g:session_directory=fnamemodify(system('git rev-parse --absolute-git-dir'), ':p:h')
+catch
+  let g:session_directory=getcwd()
+endtry
+
+augroup DontCreateSessionsRandomly
+  autocmd!
+  " Sessions are created only if OpenSession is called explicitly -or- if
+  " session.vim already exists. This prevents creating files in each folder.
+  au VimLeavePre * if empty(xolox#session#find_current_session()) | let g:session_autosave='no' | endif
+augroup END
+
+let g:session_default_name='session'
+let g:session_default_overwrite=0
 let g:session_autoload='yes'
 let g:session_autosave='yes'
 let g:session_verbose_messages=0
