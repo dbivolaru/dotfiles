@@ -4,4 +4,6 @@
 # go here.
 
 tags
+*.tags
 session.vim
+session.vim.lock
