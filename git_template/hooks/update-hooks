@@ -1,8 +1,11 @@
 #!/bin/bash
-set -e
-TEMPLATE_DIR="$(git config --global init.templatedir)"
-TEMPLATE_DIR="${TEMPLATE_DIR/#~/$HOME}"
-DEST_DIR="$(git rev-parse --absolute-git-dir)"
-for i in hooks info; do
-	rsync -qau "$TEMPLATE_DIR/$i/" "$DEST_DIR/$i/"
-done
+{
+	set -e
+	TEMPLATE_DIR="$(git config --global init.templatedir)"
+	TEMPLATE_DIR="${TEMPLATE_DIR/#~/$HOME}"
+	DEST_DIR="$(git rev-parse --absolute-git-dir)"
+	for i in hooks info; do
+		rsync -a --mkpath --out-format="--> Update hook: %o [%i] %n%L" --info=name \
+			$TEMPLATE_DIR/$i/* $DEST_DIR/$i/ | grep -e '\[.f.........\]'
+	done
+}

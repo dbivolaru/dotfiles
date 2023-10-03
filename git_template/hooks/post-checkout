@@ -1,3 +1,6 @@
-#!/bin/sh
-.git/hooks/update-hooks >/dev/null 2>&1 &
+#!/bin/bash
+if [[ $1 == 0000000000000000000000000000000000000000 ]]; then
+	echo "--> Install custom git hooks"
+fi
+.git/hooks/update-hooks
 .git/hooks/ctags >/dev/null 2>&1 &
