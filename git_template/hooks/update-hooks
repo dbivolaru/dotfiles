@@ -6,6 +6,6 @@
 	DEST_DIR="$(git rev-parse --absolute-git-dir)"
 	for i in hooks info; do
 		rsync -a --mkpath --out-format="--> Update hook: %o [%i] %n%L" --info=name \
-			$TEMPLATE_DIR/$i/* $DEST_DIR/$i/ | grep -e '\[.f.........\]'
+			$TEMPLATE_DIR/$i/* $DEST_DIR/$i/ | grep -e '\[.f.........\]' || true
 	done
 }
