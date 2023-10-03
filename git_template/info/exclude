@@ -1,0 +1,6 @@
+# Patterns which are specific to a particular repository but which do not need
+# to be shared with other related repositories (e.g., auxiliary files that
+# live inside the repository but are specific to one user’s workflow) should
+# go here.
+
+tags
