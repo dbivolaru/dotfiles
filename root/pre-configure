@@ -116,4 +116,4 @@ dnf install doublecmd-gtk
 
 echo "*** Installing bazel..."
 dnf copr enable vbatts/bazel
-dnf install bazel4
+dnf install bazel5
