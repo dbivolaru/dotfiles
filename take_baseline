@@ -4,3 +4,4 @@ cp ~/.bashrc ./bash/.bashrc
 cp ~/.dir_colors ./bash/.dir_colors
 cp ~/.vimrc ./vim/.vimrc
 cp ~/.config/kitty/kitty.conf ./kitty/kitty.conf
+cp -a ~/.git_template/* ./git_template/
