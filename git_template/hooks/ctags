@@ -1,0 +1,5 @@
+#!/bin/bash
+set -e
+trap 'rm -f "$$.tags"' EXIT
+git ls-files | ctags --tag-relative --kinds-Python=-iv -L - -f "$$.tags" --languages=-JavaScript,SQL
+mv "$$.tags" "tags"

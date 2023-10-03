@@ -1,0 +1,6 @@
+#!/bin/bash
+set -e
+TEMPLATE_DIR="$(git config --global init.templatedir)/hooks/"
+TEMPLATE_DIR="${TEMPLATE_DIR/#~/$HOME}"
+DEST_DIR="$(git rev-parse --absolute-git-dir)/hooks/"
+rsync -qau "$TEMPLATE_DIR" "$DEST_DIR"

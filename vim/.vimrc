@@ -187,8 +187,6 @@ augroup END
 " Code folding
 "=====================================================
 
-set tags^=./.git/tags
-
 set foldmethod=syntax   " Fold based on syntax
 set foldcolumn=0        " Display zero (was 3) fold columns
 set foldlevel=1         " Default fold level
