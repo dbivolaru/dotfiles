@@ -123,12 +123,14 @@ set smarttab        " Set tabs for shifttabs logic
 set showmatch       " Match parantheses
 set list            " Show trailing characters
 set listchars=tab:•-•,trail:•,extends:»,precedes:«
-augroup FileTypeTabHandling
+augroup FileTypeHandling
   autocmd!
   au FileType sh setlocal noexpandtab
   au Filetype vim set ts=2 | set shiftwidth=2
   " au FileType python set completeopt-=preview
   au FileType qf wincmd J
+  au FileType man wincmd L
+  au FileType help wincmd L
 augroup END
 
 " Backup / swap files / grep
