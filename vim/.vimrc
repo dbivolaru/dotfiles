@@ -50,6 +50,7 @@ Plugin 'Yggdroot/indentLine'
 " Session management
 Plugin 'xolox/vim-misc'
 Plugin 'xolox/vim-session'
+Plugin 'mhinz/vim-startify'
 
 " Language support
 Plugin 'voithos/vim-python-matchit'
@@ -505,7 +506,8 @@ augroup END
 
 try
   " Might look slow but it's actually very reasonable
-  let g:session_directory=fnamemodify(system('git rev-parse --absolute-git-dir'), ':p:h')
+  let g:inside_git_project=system('git rev-parse --absolute-git-dir 2>/dev/null')
+  let g:session_directory=fnamemodify(g:inside_git_project, ':p:h')
 catch
   let g:session_directory=getcwd()
 endtry
@@ -524,6 +526,28 @@ let g:session_autosave='yes'
 let g:session_verbose_messages=0
 let g:session_persist_font=0
 let g:session_persist_colors=0
+
+"=====================================================
+" vim-startify settings
+"=====================================================
+
+let g:startify_change_to_dir = 0
+let g:startify_custom_header = startify#pad(split(system('fortune'), '\n'))
+let g:startify_enable_special = 0
+let g:startify_session_persistence = 0
+let g:startify_lists = []
+call add(g:startify_lists, {'type': 'dir', 'header': ['Most Recently Used - '. getcwd()]})
+if !exists('g:inside_git_project') || empty(g:inside_git_project)
+  call add(g:startify_lists, {'type': 'files', 'header': ['Most Recently Used - Overall']})
+  let g:startify_files_number = 13
+else
+  let g:startify_files_number = 30
+endif
+call add(g:startify_lists, {'type': 'commands', 'header': ['Session']  })
+
+let g:startify_commands = [
+      \ {'S': ['Create new session', 'call xolox#session#open_cmd(g:session_default_name, "", "OpenSession")']},
+      \ ]
 
 "=====================================================
 " JEDI settings
