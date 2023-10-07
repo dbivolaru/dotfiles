@@ -130,8 +130,8 @@ augroup FileTypeHandling
   au FileType vim set ts=2 | set shiftwidth=2
   " au FileType python set completeopt-=preview
   au FileType qf wincmd J
-  au FileType man wincmd L
-  au FileType help wincmd L
+  au FileType man wincmd L | IndentLinesDisable
+  au FileType help wincmd L | IndentLinesDisable
   au FileType startify IndentLinesDisable
 augroup END
 
@@ -536,6 +536,9 @@ let g:session_persist_colors=0
 "=====================================================
 
 let g:startify_change_to_dir = 0
+let g:startify_enable_special = 0
+let g:startify_session_persistence = 0
+
 let g:startify_custom_header = "startify#center([
 \'⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣶⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⡴⠀⠀⠀⠀⠀⠀⠀⠀⠀',
 \'⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠹⣿⣿⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⣾⣿⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀',
@@ -565,19 +568,18 @@ let g:startify_custom_header = "startify#center([
 \'⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣿⣿⣿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀',
 \'⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⣿⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀',
 \'⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀'])"
-let g:startify_enable_special = 0
-let g:startify_session_persistence = 0
+let g:startify_padding_left = (&columns/2 - 40) " Assume centering on normal 80 columns terminal
 let g:startify_lists = []
 if !exists('g:inside_git_project') || empty(g:inside_git_project)
-  call add(g:startify_lists, {'type': 'dir', 'header': ['Most Recently Used - '. getcwd()]})
-  call add(g:startify_lists, {'type': 'files', 'header': ['Most Recently Used - Overall']})
+  call add(g:startify_lists, {'type': 'dir', 'header': startify#pad(['Most Recently Used - ' . getcwd()])})
+  call add(g:startify_lists, {'type': 'files', 'header': startify#pad(['Most Recently Used - Overall'])})
   let g:startify_files_number = (&lines - 28 - 8) 
 else
   execute 'cd' fnameescape(g:session_directory)
-  call add(g:startify_lists, {'type': 'dir', 'header': ['Git Project - '. getcwd()]})
+  call add(g:startify_lists, {'type': 'dir', 'header': startify#pad(['Git Project - ' . getcwd()])})
   let g:startify_files_number = (&lines - 15)
 endif
-call add(g:startify_lists, {'type': 'commands', 'header': ['Commands']})
+call add(g:startify_lists, {'type': 'commands', 'header': startify#pad(['Commands'])})
 
 let g:startify_commands = []
 if filereadable(g:session_default_name . g:session_extension)
