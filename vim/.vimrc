@@ -347,15 +347,15 @@ function! AddOtherShortcuts()
   " Find in files (needs vim-fugitive for git_dir function)
   nnoremap <Leader>gf :cexpr[]<BAR>silent! execute "grep!
                 \ <C-r>=shellescape(fnamemodify(get(b:, 'git_dir', '.'), ':h'))<CR>
-                \ -we <C-r>=shellescape(expand('<cword>'))<CR>
+                \ -g '!.git/' -we <C-r>=shellescape(expand('<cword>'))<CR>
                 \ "<BAR>cwindow<BAR>redraw!<S-Left><Left><Left>
   nnoremap <Leader>gF :cexpr[]<BAR>silent! execute "grep!
                 \ <C-r>=shellescape(fnamemodify(get(b:, 'git_dir', '.'), ':h'))<CR>
-                \ -e <C-r>=shellescape(expand('<cWORD>'))<CR>
+                \ -g '!.git/' -e <C-r>=shellescape(expand('<cWORD>'))<CR>
                 \ "<BAR>cwindow<BAR>redraw!<S-Left><Left><Left>
   vnoremap <Leader>gf ygv:cexpr[]<BAR>silent! execute "grep!
                 \ <C-r>=shellescape(fnamemodify(get(b:, 'git_dir', '.'), ':h'))<CR>
-                \ -we <C-r>=shellescape(@")<CR>
+                \ -g '!.git/' -we <C-r>=shellescape(@")<CR>
                 \ "<BAR>cwindow<BAR>redraw!<S-Left><Left><Left>
 
   " Replace in qf found files with \gf or \gF
@@ -522,8 +522,9 @@ augroup DontCreateSessionsRandomly
 augroup END
 
 let g:session_default_name='session'
+let g:session_extension = '.vim'
 let g:session_default_overwrite=0
-let g:session_autoload='yes'
+let g:session_autoload='no'
 let g:session_autosave='yes'
 let g:session_verbose_messages=0
 let g:session_persist_font=0
@@ -534,9 +535,8 @@ let g:session_persist_colors=0
 "=====================================================
 
 let g:startify_change_to_dir = 0
-let g:startify_custom_header = startify#pad(split(system('fortune'), '\n'))
-let g:startify_custom_footer = startify#pad([
-\'',
+" let g:startify_custom_footer = startify#pad(split(system('fortune'), '\n'))
+let g:startify_custom_header = startify#pad([
 \'⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣶⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⡴⠀⠀⠀⠀⠀⠀⠀⠀⠀',
 \'⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠹⣿⣿⣦⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⣾⣿⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀',
 \'⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢿⣿⣿⣿⣷⣄⡀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣠⣾⣿⣿⣿⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀',
@@ -564,26 +564,32 @@ let g:startify_custom_footer = startify#pad([
 \'⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢻⣿⣿⣿⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀',
 \'⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠈⣿⣿⣿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀',
 \'⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⣿⡏⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀',
-\'⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣿⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀'])
+\'⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀ ⣿⠁⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀'])
 let g:startify_enable_special = 0
 let g:startify_session_persistence = 0
 let g:startify_lists = []
-call add(g:startify_lists, {'type': 'dir', 'header': ['Most Recently Used - '. getcwd()]})
 if !exists('g:inside_git_project') || empty(g:inside_git_project)
+  call add(g:startify_lists, {'type': 'dir', 'header': ['Most Recently Used - '. getcwd()]})
   call add(g:startify_lists, {'type': 'files', 'header': ['Most Recently Used - Overall']})
-  let g:startify_files_number = 13
+  let g:startify_files_number = (&lines - 28 - 8) 
 else
-  let g:startify_files_number = 30
+  execute 'cd' fnameescape(g:session_directory)
+  call add(g:startify_lists, {'type': 'dir', 'header': ['Git Project - '. getcwd()]})
+  let g:startify_files_number = (&lines - 15)
 endif
-call add(g:startify_lists, {'type': 'commands', 'header': ['Commands']  })
+call add(g:startify_lists, {'type': 'commands', 'header': ['Commands']})
 
-let g:startify_commands = [
-      \ {'SN': ['Session New', 'call xolox#session#open_cmd(g:session_default_name, "", "OpenSession session")']},
-      \ {'SO': ['Session Open', 'call xolox#session#open_cmd(g:session_default_name, "", "OpenSession")']},
+let g:startify_commands = []
+if filereadable(g:session_default_name . g:session_extension)
+  call add(g:startify_commands, {'SO': ['Session Open ' . g:session_directory . '/' . g:session_default_name . g:session_extension, 'call xolox#session#open_cmd(g:session_default_name, "", "OpenSession")']})
+else
+  call add(g:startify_commands, {'SN': ['Session New', 'call xolox#session#open_cmd(g:session_default_name, "", "OpenSession session")']})
+endif
+call extend(g:startify_commands, [
       \ {'PU': ['Plugins Update', 'PluginUpdate']},
       \ {'PI': ['Plugins Install', 'PluginInstall']},
       \ {'PC': ['Plugins Clean', 'PluginClean']}
-      \ ]
+      \ ])
 
 "=====================================================
 " JEDI settings
