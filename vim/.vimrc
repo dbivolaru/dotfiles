@@ -218,7 +218,6 @@ let g:airline#extensions#tabline#show_tab_nr=0
 let g:airline#extensions#tabline#show_tab_type=0
 let g:airline#extensions#tabline#show_close_button=0
 let g:airline#extensions#ctrlp#show_adjacent_modes=0
-let g:airline#extensions#virtualenv#enabled=1
 let g:airline#extensions#ale#enabled=1
 let g:airline#extensions#tagbar#enabled=1
 au User AirlineAfterInit let g:airline_section_x=g:airline#section#create_right(['filetype'])
@@ -590,7 +589,8 @@ endif
 call extend(g:startify_commands, [
       \ {'PU': ['Plugins Update', 'PluginUpdate']},
       \ {'PI': ['Plugins Install', 'PluginInstall']},
-      \ {'PC': ['Plugins Clean', 'PluginClean']}
+      \ {'PC': ['Plugins Clean', 'PluginClean']},
+      \ {'JD': ['Journal Delta', 'enew | setlocal nobuflisted | r !journalctl -b --output=short-delta']}
       \ ])
 
 "=====================================================
@@ -627,12 +627,6 @@ let g:SimpylFold_fold_docstring=0
 let g:SimpylFold_fold_import=0
 
 "=====================================================
-" vim-virtualenv settings
-"=====================================================
-
-let g:virtualenv_auto_activate=1
-
-"=====================================================
 " Tagbar settings
 "=====================================================
 
@@ -659,6 +653,6 @@ elseif &term == 'xterm-kitty'
   " This was added by some people using emacs who wanted additional key combinations
   " Ref: https://invisible-island.net/xterm/modified-keys.html
   " Meta keys should work as long as they are sent 8bit (kitty.conf), as it should be
-  set keyprotocol=
+  set keyprotocol=kitty:none,foot:none,wezterm:none,xterm:none
   set term=xterm-256color
 endif
