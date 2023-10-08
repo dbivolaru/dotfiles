@@ -19,8 +19,32 @@ set nocompatible
 set t_Co=256
 
 "=====================================================
+" Faster background clearing
+"=====================================================
+
+if has('gui_running') || has('nvim')
+  hi Normal guifg=#f8f8f2 guibg=#272822
+elseif &term == 'xterm-kitty'
+  " Set the terminal default background and foreground colors, thereby
+  " improving performance by not needing to set these colors on empty cells.
+  hi Normal guifg=NONE guibg=NONE ctermfg=NONE ctermbg=NONE
+  let &t_ti = &t_ti . "\033]10;#f8f8f2\007\033]11;#272822\007"
+  let &t_te = &t_te . "\033]110\007\033]111\007"
+  let &t_RV = ""
+
+  " Disable kitty keyboard protocol as we use legacy VT mode
+  " Also, we disable xterm:mok2 mode
+  " This was added by some people using emacs who wanted additional key combinations
+  " Ref: https://invisible-island.net/xterm/modified-keys.html
+  " Meta keys should work as long as they are sent 8bit (kitty.conf), as it should be
+  set keyprotocol=kitty:none,foot:none,wezterm:none,xterm:none
+  set term=xterm-256color
+endif
+
+"=====================================================
 " Vundle settings
 "=====================================================
+
 filetype off
 set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
@@ -524,7 +548,7 @@ augroup END
 let g:session_default_name='session'
 let g:session_extension = '.vim'
 let g:session_default_overwrite=0
-let g:session_autoload='no'
+let g:session_autoload='yes'
 let g:session_autosave='yes'
 let g:session_verbose_messages=0
 let g:session_persist_font=0
@@ -634,25 +658,3 @@ let g:tagbar_zoomwidth = 60 " Bigger window size
 let g:tagbar_compact = 1 " Don't show help ? info
 let g:tagbar_autoshowtag = 1 " Expand folds to show current tag
 
-"=====================================================
-" Faster background clearing
-"=====================================================
-
-if has('gui_running') || has('nvim')
-  hi Normal guifg=#f8f8f2 guibg=#272822
-elseif &term == 'xterm-kitty'
-  " Set the terminal default background and foreground colors, thereby
-  " improving performance by not needing to set these colors on empty cells.
-  hi Normal guifg=NONE guibg=NONE ctermfg=NONE ctermbg=NONE
-  let &t_ti = &t_ti . "\033]10;#f8f8f2\007\033]11;#272822\007"
-  let &t_te = &t_te . "\033]110\007\033]111\007"
-  let &t_RV = ""
-
-  " Disable kitty keyboard protocol as we use legacy VT mode
-  " Also, we disable xterm:mok2 mode
-  " This was added by some people using emacs who wanted additional key combinations
-  " Ref: https://invisible-island.net/xterm/modified-keys.html
-  " Meta keys should work as long as they are sent 8bit (kitty.conf), as it should be
-  set keyprotocol=kitty:none,foot:none,wezterm:none,xterm:none
-  set term=xterm-256color
-endif
