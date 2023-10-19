@@ -1,6 +1,6 @@
 #!/bin/sh
-diff --color=auto -u ~/.inputrc ./bash/.inputrc
-diff --color=auto -u ~/.bashrc ./bash/.bashrc
-diff --color=auto -u ~/.dir_colors ./bash/.dir_colors
-diff --color=auto -u ~/.vimrc ./vim/.vimrc
-diff --color=auto -u ~/.config/kitty/kitty.conf ./kitty/kitty.conf
+vimdiff ~/.inputrc ./bash/.inputrc
+vimdiff ~/.bashrc ./bash/.bashrc
+vimdiff ~/.dir_colors ./bash/.dir_colors
+vimdiff ~/.vimrc ./vim/.vimrc
+vimdiff ~/.config/kitty/kitty.conf ./kitty/kitty.conf

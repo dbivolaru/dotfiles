@@ -379,6 +379,9 @@ function! AddOtherShortcuts()
   " Buffer show
   nnoremap <Leader>b :ls<CR>:b<Space>
 
+  " Execute bash command and paste back in current buffer
+  nnoremap <Leader>r :silent execute ':read !' . getline('.')<CR>
+
   " Wrap-around loclist (this over-rides vim-unimpaired functionality)
   command! -range=1 -bang Lnext try | <count>lnext<bang> | catch /E553/ | lfirst<bang> <count> | endtry
   command! -range=1 -bang Lprev try | <count>lprev<bang> | catch /E553/ | llast<bang> <count> | endtry

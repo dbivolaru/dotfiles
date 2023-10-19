@@ -385,6 +385,12 @@ if [[ -n "${BASH_VERSION-}" ]]; then
 		[[ -f ~/.bash_completion/kubectl ]] || kubectl completion bash >~/.bash_completion/kubectl
 		[[ -f ~/.bash_completion/kubectl ]] && source ~/.bash_completion/kubectl
 	fi
+
+	# Completions for helm
+	if [[ -x $(command -v helm) ]]; then
+		[[ -f ~/.bash_completion/helm ]] || helm completion bash >~/.bash_completion/helm
+		[[ -f ~/.bash_completion/helm ]] && source ~/.bash_completion/helm
+	fi
 fi
 
 # zsh specific
@@ -423,6 +429,12 @@ if [[ -n "${ZSH_VERSION-}" ]]; then
 	if [[ $commands[kubectl] ]]; then
 		[[ -f ~/.zsh_completion/kubectl ]] || kubectl completion zsh >~/.zsh_completion/kubectl
 		[[ -f ~/.zsh_completion/kubectl ]] && source ~/.zsh_completion/kubectl
+	fi
+
+	# Completions for helm
+	if [[ $commands[helm] ]]; then
+		[[ -f ~/.zsh_completion/helm ]] || helm completion zsh >~/.zsh_completion/helm
+		[[ -f ~/.zsh_completion/helm ]] && source ~/.zsh_completion/helm
 	fi
 
 	# Group by description
