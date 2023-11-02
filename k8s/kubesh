@@ -5,6 +5,7 @@ node=${1}
 nodeName=$(kubectl get node ${node} -o template --template='{{index .metadata.labels "kubernetes.io/hostname"}}')
 nodeSelector='"nodeSelector": { "kubernetes.io/hostname": "'${nodeName:?}'" },'
 podName=${USER}-support-${node}
+podName=${podName:0:62}
 
 kubectl run ${podName:?} --restart=Never -it --rm --image overriden --overrides '
 {
