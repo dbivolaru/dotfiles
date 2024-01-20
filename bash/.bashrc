@@ -95,14 +95,15 @@ else
 	fi
 fi
 
-if [[ -d /usr/share/vim/vim90 ]]; then
+if [[ -f /usr/share/vim/vim91/defaults.vim ]]; then
 	# Fast guess
-	export VIMRUNTIME="/usr/share/vim/vim90"
+	export VIMRUNTIME="/usr/share/vim/vim91"
 else
 	# This is very slow
 	VIMRUNTIME="$($EDITOR --version | awk ' /fall-back/ { gsub(/["]/,"",$NF); print $NF }')"
 	VIMRUNTIME="$(find $VIMRUNTIME -name defaults.vim)"
 	export VIMRUNTIME="${VIMRUNTIME%/*}"
+	echo "VIMRUNTIME not found. Searched and found $VIMRUNTIME. Please update .bashrc accordingly."
 fi
 export MERGE="vimdiff"
 export VIRTUAL_ENV_DISABLE_PROMPT=1
