@@ -7,6 +7,8 @@ from collections import defaultdict
 import math
 import os
 import dbus
+from pathlib import Path
+import sys
 
 from kitty.boss import get_boss
 from kitty.fast_data_types import Screen
@@ -20,73 +22,15 @@ from kitty.tab_bar import (
     draw_title,
 )
 
+sys.path.insert(0, str(Path.home() / '.config' / 'kitty'))
+from kitty_common import (
+    ssh_help, kitty_help, kitty_alt_help,
+    cyan, red, white, normal, rst, mc_string
+)
+
 session_bus = dbus.SessionBus()
 host_list = {}
-csi = '\x1b['
-cyan = f'{csi}30;46m'
-red = f'{csi}30;41m'
-white = f'{csi}30;47m'
-normal = f'{csi}37;40m'
-rst = f'{csi}00m'
-ssh_help = [
-    ['~&', 'WaitConn'],
-    ['~#', 'ListConn'],
-    ['~R', 'Rekey'],
-    ['~C', 'Cmd Line'],
-    ['~B', 'Break'],
-    ['^Z', 'Suspend'],
-    ['~.', 'Terminate'],
-    ['8', '---'],
-    ['9', '---'],
-    ['10', '---']
-]
-kitty_alt_help = [
-    ['1', 'UnHold'],
-    ['2', 'AltScreen'],
-    ['3', 'Reset'],
-    ['4', '---'],
-    ['5', 'HangUp'],
-
-    ['6', 'Stop'],
-    ['7', 'Quit'],
-    ['8', 'Kill'],
-    ['9', '---'],
-    ['10', '---']
-]
-kitty_help = [
-    ['1', 'Hold'],
-    ['2', 'Screen'],
-    ['3', 'Setup'],
-    ['4', 'Shell'],
-    ['5', 'Interrupt'],
-
-    ['6', 'Suspend'],
-    ['7', 'Terminate'],
-    ['8', 'Continue'],
-    ['9', '---'],
-    ['10', 'Maximize']
-]
 STATE = defaultdict(lambda: "", {"Paused": "", "Playing": ""})
-
-
-def mc_string(lst, title=None, cols=160, color=cyan):
-    ret = [rst]
-    n = len(lst)
-    t = len(title) if title else 0
-    cols -= t
-    fn_cols = math.floor(cols / n) - 2
-    remainder = cols - n * (fn_cols + 2)
-    if title:
-        ret.append(f' {white}{title}{rst}')
-    i = 1
-    last_pad = 0
-    for l in lst:
-        pad = math.floor(remainder * i / n)
-        ret.append(f'{normal}{l[0]: >2}{color}{l[1]: <{fn_cols + pad - last_pad}}{rst}')
-        last_pad = pad
-        i += 1
-    ret.append('\n\n')
-    return ''.join(ret)
 
 
 def get_active_music():

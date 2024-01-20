@@ -1,28 +1,18 @@
 #!/usr/bin/env python3
 
 import sys
+from pathlib import Path
 import os
 from subprocess import check_output
 from functools import partial
 
+sys.path.insert(0, str(Path.home() / '.config' / 'kitty'))
+from kitty_common import (
+    ssh_help, kitty_help, kitty_alt_help, cyan, white, rst, mc_print
+)
+
 sh_raw = partial(check_output, shell=True, encoding='utf-8')
 sh = lambda cmd: sh_raw(cmd).rstrip()
-
-csi = '\x1b['
-cyan = f'{csi}30;46m'
-white = f'{csi}30;47m'
-rst = f'{csi}00m'
-
-
-def mc_print(lst, title=None, cols=160):
-    n = len(lst)
-    fn_cols = int(cols / n) - 2
-    if title:
-        print(f'{white}{title: ^{cols}}{rst}', flush=True)
-    for l in lst:
-        print(f'{l[0]: >2}{cyan}{l[1]: <{fn_cols}}{rst}', end='', flush=True)
-    print('', flush=True)
-    print('', flush=True)
 
 
 # If we have the output piped then stdout (like in shutil) will not work
@@ -31,46 +21,8 @@ cols, rows = os.get_terminal_size(sys.__stdin__.fileno())
 print(f'{sh("kitty --version")} {cols}x{rows}', flush=True)
 print('\n' * (rows - 10), end='', flush=True)
 
-ssh_help = [
-    ['~&', 'WaitConn'],
-    ['~#', 'ListConn'],
-    ['~R', 'Rekey'],
-    ['~C', 'Cmd Line'],
-    ['~B', 'Break'],
-    ['^Z', 'Suspend'],
-    ['~.', 'Terminate'],
-    ['8', '---'],
-    # ['9', '---'],
-    # ['10', '---']
-]
 mc_print(ssh_help, title='SSH Functions (Ctrl)', cols=cols)
 
-kitty_alt_help = [
-    ['1', 'UnHold'],
-    ['2', 'AltScreen'],
-    ['3', 'Reset'],
-    ['4', 'SoftReset'],
-    ['5', 'HangUp'],
-
-    ['6', 'Stop'],
-    ['7', 'Quit'],
-    ['8', 'Kill'],
-    # ['9', '---'],
-    # ['10', '---']
-]
 mc_print(kitty_alt_help, title='Terminal Functions (Ctrl + Shift + Alt)', cols=cols)
 
-kitty_help = [
-    ['1', 'Hold'],
-    ['2', 'Screen'],
-    ['3', 'Setup'],
-    ['4', 'Shell'],
-    ['5', 'Interrupt'],
-
-    ['6', 'Suspend'],
-    ['7', 'Terminate'],
-    ['8', 'Continue'],
-    # ['9', '---'],
-    # ['10', 'Maximize']
-]
 mc_print(kitty_help, title='Terminal Functions (Ctrl + Shift)', cols=cols)
