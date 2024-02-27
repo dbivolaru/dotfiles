@@ -75,6 +75,8 @@ alias ll.='ls -dlhN .* --color=auto --group-directories-first' 2>/dev/null
 alias ls='ls -hN --color=auto --group-directories-first' 2>/dev/null
 alias diff='diff --color=auto -ud'
 
+kubectx() { if [[ "$#" -eq 1 ]]; then kubectl config use-context $1; else kubectl config get-contexts; fi; }
+
 lll() { stat --printf="%A %#03a %h %4U %4G %s %.19y %n (%C)\n" * | numfmt --to=iec-i --field=6 --padding=5; }
 lll.() { stat --printf="%A %#03a %h %4U %4G %s %.19y %n (%C)\n" .* | numfmt --to=iec-i --field=6 --padding=5; }
 
