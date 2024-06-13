@@ -77,6 +77,7 @@ alias diff='diff --color=auto -ud'
 
 kubectx() { if [[ "$#" -eq 1 ]]; then kubectl config use-context $1; else kubectl config get-contexts; fi; }
 kubelb() { if [[ "$#" -ge 1 ]]; then KUBELB_OPT=("$@"); else KUBELB_OPT=-A; fi; kubectl get service "${KUBELB_OPT[@]}" -o jsonpath='NAMESPACE{"\t"}NAME{"\t"}EXTERNAL-IP{"\n"}{range .items[?(@.status.loadBalancer.ingress[0])]}{.metadata.namespace}{"\t"}{.metadata.name}{"\t"}{range .status.loadBalancer.ingress[0]}{@.ip}{@.hostname}{end}{"\n"}{end}' | column -t ; }
+kubeevents() { kubectl get events --all-namespaces  --sort-by='.metadata.creationTimestamp'; }
 
 lll() { stat --printf="%A %#03a %h %4U %4G %s %.19y %n (%C)\n" * | numfmt --to=iec-i --field=6 --padding=5; }
 lll.() { stat --printf="%A %#03a %h %4U %4G %s %.19y %n (%C)\n" .* | numfmt --to=iec-i --field=6 --padding=5; }
