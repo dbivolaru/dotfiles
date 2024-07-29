@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [[ $# -ne 1 ]]; then
+    echo "Usage: kubeget-nonhelm <namespace>"
+    echo "    List all resources not managed by Helm."
+	exit 1
+fi
+
+kubectl get all -n "$1" --selector=app.kubernetes.io/managed-by!=Helm
