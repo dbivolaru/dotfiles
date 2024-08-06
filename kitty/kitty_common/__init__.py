@@ -46,7 +46,7 @@ kitty_help = [
 ]
 
 
-def mc_string(lst, title=None, cols=160, color=cyan, center_title=False):
+def mc_string(lst, title=None, title_cr=True, cols=160, color=cyan, center_title=False):
     ret = [rst]
     n = len(lst)
     t = len(title) if title and not center_title else 0
@@ -55,17 +55,18 @@ def mc_string(lst, title=None, cols=160, color=cyan, center_title=False):
     remainder = cols - n * (fn_cols + 2)
     if title:
         if center_title:
-            ret.append(f'{white}{title: ^{cols}}{rst}\n')
+            ret.append(f'{rst}{white}{title: ^{cols}}{rst}{normal}')
         else:
-            ret.append(f' {white}{title}{rst}\n')
+            ret.append(f' {rst}{white}{title}{rst}{normal}')
+        if title_cr:
+            ret.append(f'\n')
     i = 1
     last_pad = 0
     for l in lst:
         pad = math.floor(remainder * i / n)
-        ret.append(f'{normal}{l[0]: >2}{color}{l[1]: <{fn_cols + pad - last_pad}}{rst}')
+        ret.append(f'{rst}{normal}{l[0]: >2}{color}{l[1]: <{fn_cols + pad - last_pad}}{rst}{normal}')
         last_pad = pad
         i += 1
-    ret.append('\n')
     return ''.join(ret)
 
 

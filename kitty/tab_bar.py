@@ -34,24 +34,27 @@ STATE = defaultdict(lambda: "", {"Paused": "", "Playing": ""})
 
 
 def get_active_music():
-    ret = None
-    for name in session_bus.list_names():
-        if name.startswith('org.mpris.MediaPlayer2.'):
-            player = session_bus.get_object(name, '/org/mpris/MediaPlayer2')
-            iface = dbus.Interface(player, 'org.freedesktop.DBus.Properties')
-            props = iface.GetAll('org.mpris.MediaPlayer2.Player')
-            if props['PlaybackStatus'] == 'Playing' or ret is None:
-                ret = '{0}{1} {2} {3} - {4} {5}'.format(
-                    rst,
-                    normal,
-                    STATE[props['PlaybackStatus']],
-                    ''.join(props['Metadata']['xesam:artist']),
-                    props['Metadata']['xesam:title'],
-                    rst,
-                )
-            if props['PlaybackStatus'] == 'Playing':
-                break
-    return (len(ret) - 2 * len(rst) - len(normal), ret) if ret and len(ret) > 3 else (1, '')
+    try:
+        ret = None
+        for name in session_bus.list_names():
+            if name.startswith('org.mpris.MediaPlayer2.'):
+                player = session_bus.get_object(name, '/org/mpris/MediaPlayer2')
+                iface = dbus.Interface(player, 'org.freedesktop.DBus.Properties')
+                props = iface.GetAll('org.mpris.MediaPlayer2.Player')
+                if props['PlaybackStatus'] == 'Playing' or (ret is None and props['Metadata']['xesam:title']):
+                    ret = '{0}{1} {2} {3} - {4}{5}'.format(
+                        rst,
+                        normal,
+                        STATE[props['PlaybackStatus']],
+                        ''.join(props['Metadata']['xesam:artist']),
+                        props['Metadata']['xesam:title'],
+                        rst,
+                    )
+                if props['PlaybackStatus'] == 'Playing':
+                    break
+        return (len(ret) - 2 * len(rst) - len(normal), ret) if ret and len(ret) > 3 else (0, '')
+    except Exception:
+        return (0, '')
 
 
 def draw_tab(
@@ -59,12 +62,12 @@ def draw_tab(
     screen: Screen,
     tab: TabBarData,
     before: int,
-    max_tab_length: int,
+    max_title_length: int,
     index: int,
     is_last: bool,
     extra_data: ExtraData,
 ) -> int:
-    mc_title = f'{rst}{white}{tab.tab_id: >2}{rst}' if tab.is_active else f'{rst}{normal}{tab.tab_id: >2}{rst}'
+    mc_title = f'{rst}{white}{tab.tab_id: >2}{rst}{normal}' if tab.is_active else f'{rst}{normal}{tab.tab_id: >2}{rst}{normal}'
     draw_attributed_string(
         mc_title,
         screen
@@ -87,6 +90,7 @@ def draw_tab(
         mc_string(
             kitty_help if len(this_host_list) <= 1 else ssh_help,
             title=mc_title,
+            title_cr=False,
             cols=screen.columns - screen.cursor.x - lam,
             color=red if len(this_host_list) > 1 else cyan,
         ),
@@ -145,7 +149,7 @@ def create_cells() -> list[str]:
 
 
 def currently_playing():
-    status = " "
+    status = ''
     data = {}
     try:
         data = json.loads(subprocess.getoutput("dbus-player-status"))
@@ -159,6 +163,6 @@ def currently_playing():
         if "artist" in data:
             status = f"{status} - {data['artist']}"
     else:
-        status = ""
+        status = ''
     return status
 
