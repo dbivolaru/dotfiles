@@ -8,7 +8,7 @@ from functools import partial
 
 sys.path.insert(0, str(Path.home() / '.config' / 'kitty'))
 from kitty_common import (
-    ssh_help, kitty_help, kitty_alt_help, cyan, white, rst, mc_print
+    ssh_help, kitty_help, kitty_alt_help, kitty_ctrl_help, cyan, white, rst, mc_print
 )
 
 sh_raw = partial(check_output, shell=True, encoding='utf-8')
@@ -22,6 +22,8 @@ print(f'{sh("kitty --version")} {cols}x{rows}', flush=True)
 print('\n' * (rows - 10), end='', flush=True)
 
 mc_print(ssh_help, title='SSH Functions (Ctrl)', cols=cols)
+
+mc_print(kitty_ctrl_help, title='Additional Function Keys (Ctrl)', cols=cols)
 
 mc_print(kitty_alt_help, title='Terminal Functions (Ctrl + Shift + Alt)', cols=cols)
 

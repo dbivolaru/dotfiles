@@ -4,13 +4,11 @@ import datetime
 import json
 import subprocess
 from collections import defaultdict
-import math
 import os
 import dbus
 from pathlib import Path
 import sys
 
-from kitty.boss import get_boss
 from kitty.fast_data_types import Screen
 from kitty.tab_bar import (
     DrawData,
@@ -19,12 +17,11 @@ from kitty.tab_bar import (
     TabBarData,
     as_rgb,
     draw_attributed_string,
-    draw_title,
 )
 
 sys.path.insert(0, str(Path.home() / '.config' / 'kitty'))
 from kitty_common import (
-    ssh_help, kitty_help, kitty_alt_help,
+    ssh_help, kitty_help,
     cyan, red, white, normal, rst, mc_string
 )
 
@@ -38,10 +35,17 @@ def get_active_music():
         ret = None
         for name in session_bus.list_names():
             if name.startswith('org.mpris.MediaPlayer2.'):
-                player = session_bus.get_object(name, '/org/mpris/MediaPlayer2')
-                iface = dbus.Interface(player, 'org.freedesktop.DBus.Properties')
+                player = session_bus.get_object(
+                    name,
+                    '/org/mpris/MediaPlayer2'
+                )
+                iface = dbus.Interface(
+                    player,
+                    'org.freedesktop.DBus.Properties'
+                )
                 props = iface.GetAll('org.mpris.MediaPlayer2.Player')
-                if props['PlaybackStatus'] == 'Playing' or (ret is None and props['Metadata']['xesam:title']):
+                if props['PlaybackStatus'] == 'Playing' or \
+                        (ret is None and props['Metadata']['xesam:title']):
                     ret = '{0}{1} {2} {3} - {4}{5}'.format(
                         rst,
                         normal,
@@ -52,7 +56,8 @@ def get_active_music():
                     )
                 if props['PlaybackStatus'] == 'Playing':
                     break
-        return (len(ret) - 2 * len(rst) - len(normal), ret) if ret and len(ret) > 3 else (0, '')
+        return (len(ret) - 2 * len(rst) - len(normal), ret) \
+            if ret and len(ret) > 3 else (0, '')
     except Exception:
         return (0, '')
 
@@ -67,7 +72,8 @@ def draw_tab(
     is_last: bool,
     extra_data: ExtraData,
 ) -> int:
-    mc_title = f'{rst}{white}{tab.tab_id: >2}{rst}{normal}' if tab.is_active else f'{rst}{normal}{tab.tab_id: >2}{rst}{normal}'
+    mc_title = f'{rst}{white}{tab.tab_id: >2}{rst}{normal}' if tab.is_active \
+        else f'{rst}{normal}{tab.tab_id: >2}{rst}{normal}'
     draw_attributed_string(
         mc_title,
         screen
@@ -84,7 +90,8 @@ def draw_tab(
         elif len(this_host_list) >= 1 and host != this_host_list[-1]:
             this_host_list.append(host)
     mc_title = ' -> '.join(this_host_list)
-    mc_title = mc_title if len(mc_title) < 40 else ' -> '.join(this_host_list[-2:])
+    mc_title = mc_title if len(mc_title) < 40 \
+        else ' -> '.join(this_host_list[-2:])
 
     draw_attributed_string(
         mc_string(
@@ -141,11 +148,10 @@ def create_cells() -> list[str]:
     now = datetime.datetime.now()
     return [
         currently_playing(),
-        get_headphone_battery_status(),
+        None,
         now.strftime("%d %b"),
         now.strftime("%H:%M"),
     ]
-
 
 
 def currently_playing():
@@ -163,6 +169,5 @@ def currently_playing():
         if "artist" in data:
             status = f"{status} - {data['artist']}"
     else:
-        status = ''
+        status = ""
     return status
-
