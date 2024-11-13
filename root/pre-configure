@@ -12,7 +12,7 @@ fi
 echo "*** Installing system utilities"
 dnf install -y --allowerasing \
 	zsh mc ranger vim vim-X11 vim-default-editor ctags ripgrep kitty xsel xclip fish sshfs colordiff meld \
-	screen tmux tmux-powerline most \
+	screen tmux reptyr tmux-powerline most \
 	vttest cu xterm rxvt-unicode \
 	arp-scan telnet wireshark openssl iptraf iftop bmon tcptrack nethogs \
 	zram-generator zram-generator-defaults zram tuned tuned-gtk \
