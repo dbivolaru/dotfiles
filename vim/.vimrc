@@ -606,7 +606,7 @@ let g:jedi#popup_on_dot=0 " This seems too laggy, so we disable
 let g:jedi#popup_select_first=1 " Saves one key strokei
 let g:jedi#show_call_signatures=0 " This seems too lagy, so we disable
 let g:jedi#show_call_signatures_delay=0 " Show signature immediately
-let g:jedi#use_splits_not_buffers = "left"
+" let g:jedi#use_splits_not_buffers = "left"
 
 " Keyboard shortcuts
 let g:jedi#completions_command = "<C-Space>"
