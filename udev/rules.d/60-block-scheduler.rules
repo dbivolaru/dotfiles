@@ -1,7 +1,0 @@
-# Override io scheduler settings to optimize for VMware.
-
-ACTION=="add", SUBSYSTEM=="block", \
-  KERNEL=="mmcblk*[0-9]|msblk*[0-9]|mspblk*[0-9]|sd*[!0-9]|sr*", \
-  ENV{DEVTYPE}=="disk", \
-  ATTR{bdi/read_ahead_kb}="4096", \
-  ATTR{queue/scheduler}="mq-deadline"
