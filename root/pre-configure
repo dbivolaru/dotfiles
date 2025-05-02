@@ -17,7 +17,7 @@ dnf install -y --allowerasing \
 	arp-scan telnet wireshark openssl iptraf iftop bmon tcptrack nethogs \
 	zram-generator zram-generator-defaults zram tuned tuned-gtk \
 	imwheel \
-	bsd-games cmatrix cmatrix-x11-fonts neofetch \
+	bsd-games cmatrix cmatrix-x11-fonts fastfetch \
 	smartmontools hdparm htop dnfdragora gnome-tweak-tool dconf-editor \
 	curl cabextract qpdf \
 	xfontsel xorg-x11-fonts* xorg-x11-font-utils fontconfig \
@@ -42,18 +42,33 @@ dnf install -y \
 	uglify-js yamllint butane \
 	protobuf-compiler \
 	gobject-introspection-devel cairo-devel gtk3 cairo-gobject-devel \
-	java-1.8.0-openjdk \
 	llvm \
 
 git config --global difftool.prompt false
 git config --global diff.tool vimdiff
 
 ################################################################################
+echo "*** Installing java from Adoptium Temurin..."
+cat <<EOF > /etc/yum.repos.d/adoptium.repo
+[Adoptium]
+name=Adoptium
+baseurl=https://packages.adoptium.net/artifactory/rpm/${DISTRIBUTION_NAME:-$(. /etc/os-release; echo $ID)}/\$releasever/\$basearch
+enabled=1
+gpgcheck=1
+gpgkey=https://packages.adoptium.net/artifactory/api/gpg/key/public
+EOF
+
+dnf install -y \
+	temurin-8-jdk \
+	temurin-8-jre \
+	temurin-11-jdk \
+
+################################################################################
 echo "*** Installing tools..."
 dnf install -y \
 	python3 python3-pip python3-devel python3-wheel python3-setuptools python3-six \
-	python3-spyder python3-notebook python-notebook-doc \
-	python3-ipdb python3-coverage python3-coverage_pth python3-mock \
+	python3-spyder python3-notebook  \
+	python3-coverage python3-coverage_pth python3-mock \
 	python3-pytz python3-tzlocal \
 	python3-numpy python3-pandas python3-scipy python3-scikit-learn python3-statsmodels \
 	python3-matplotlib python3-seaborn python3-gobject \
@@ -81,11 +96,6 @@ dnf config-manager --set-enabled google-chrome
 dnf install -y google-chrome-stable
 
 ################################################################################
-echo "*** Installing rpmfusion..."
-dnf install -y https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
-dnf install -y https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
-
-################################################################################
 echo "*** Cleanup..."
 dnf copr remove copr.fedorainfracloud.org/phracek/PyCharm
 
@@ -93,25 +103,20 @@ dnf copr remove copr.fedorainfracloud.org/phracek/PyCharm
 echo "*** Config java version..."
 alternatives --config java
 alternatives --config jre_openjdk
+# TODO seems temurin JRE does not register itself with alternatives properly
 
 # This modules are needed by java
 dnf install -y gtk-murrine-engine
 echo "/usr/lib64/gtk-3.0/modules/" > /etc/ld.so.conf.d/pk-gtk.conf
 ldconfig
 
-# Replace resolved stub with actual config
-ln -sfv /run/systemd/resolve/resolv.conf /etc/resolv.conf
-
 ################################################################################
 echo "*** Installing container support..."
 dnf install -y podman buildah podman-docker
 
-# Fix podman permissions
-chmod 755 /etc/containers/storage.conf
-
 ################################################################################
 echo "*** Installing doublecmd..."
-dnf install doublecmd-gtk
+dnf install -y doublecmd-gtk
 
 echo "*** Installing bazel..."
 dnf copr enable vbatts/bazel
