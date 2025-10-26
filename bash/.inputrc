@@ -35,7 +35,7 @@ set input-meta on
 set output-meta on
 
 # Put keypad in app mode
-set enable-keypad on
+set enable-keypad off
 
 # Unmap double escape and handle CSI and SS3 terminal escape sequences
 set keyseq-timeout 1

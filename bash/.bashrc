@@ -449,6 +449,20 @@ if [[ -n "${ZSH_VERSION-}" ]]; then
 	zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
 	zstyle ':completion:*:*:-command-:*:*' group-order alias builtins functions commands
 
+	# Shell keyword support (like bash, but slightly better)
+	WORDCHARS="${WORDCHARS/\//}"
+	autoload -Uz select-word-style && select-word-style normal
+	zle -N shell-kill-word kill-word-match
+	zstyle :zle:shell-kill-word word-style shell
+	zle -N shell-backward-kill-word backward-kill-word-match
+	zstyle :zle:shell-backward-kill-word word-style shell
+	zle -N shell-forward-word forward-word-match
+	zstyle :zle:shell-forward-word word-style shell
+	zle -N shell-backward-word backward-word-match
+	zstyle :zle:shell-backward-word word-style shell
+	zle -N shell-transpose-words transpose-words-match
+	zstyle :zle:shell-transpose-words word-style shell
+
 	# Also do history expansion on space
 	bindkey ' ' magic-space
 
@@ -563,13 +577,13 @@ if [[ -n "${ZSH_VERSION-}" ]]; then
 
 	# Navigation
 	## M-b and M-f move to whitespace instead of /
-	bindkey "\eb" backward-word
-	bindkey "\ef" forward-word
+	bindkey "\eb" shell-backward-word
+	bindkey "\ef" shell-forward-word
 
 	# Kill Ring
 	## M-d and M-Rubout kills to whitespace instead of /
-	bindkey "\ed" kill-word
-	bindkey "\e\C-?" backward-kill-word
+	bindkey "\ed" shell-kill-word
+	bindkey "\e\C-?" shell-backward-kill-word
 
 	## Ctrl-Delete has legacy functionality
 	bindkey "\e[3;5~" kill-word
@@ -579,7 +593,7 @@ if [[ -n "${ZSH_VERSION-}" ]]; then
 
 	# Transpose
 	## M-t transposes unix bounded words instead of /
-	bindkey "\et" transpose-words
+	bindkey "\et" shell-transpose-words
 
 	## C-x t has legacy functionality
 	bindkey "\C-xt" transpose-words
