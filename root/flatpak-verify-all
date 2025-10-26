@@ -1,0 +1,4 @@
+#!/bin/bash
+
+flatpak uninstall --unused
+flatpak repair

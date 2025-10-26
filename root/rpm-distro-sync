@@ -11,5 +11,5 @@ updatedb
 
 echo "SELinux relabel flag set. Please reboot."
 #touch /.autorelabel
-fixfiles onboot
+fixfiles -B onboot
 

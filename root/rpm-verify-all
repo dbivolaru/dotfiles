@@ -1,7 +1,7 @@
 #!/bin/sh
 
 dnf upgrade --refresh
-dnf install -y rpmconf dnf-plugins-core symlinks remove-retired-packages
+dnf install -y rpmconf dnf-plugins-core symlinks remove-retired-packages dracut-config-rescue clean-rpm-gpg-pubkey
 echo "*****"
 echo "* RPM verify..."
 echo "*****"
@@ -63,6 +63,13 @@ dnf remove $(dnf repoquery --extras --exclude=kernel,kernel-\*,pgadmin4-\*)
 #echo "* Dangling symlinks (cleanup)"
 #echo "*****"
 #symlinks -r -d /usr
+
+#read -rsn1 -p "Press any key to continue (GPG keys)"; echo
+
+#echo "*****"
+#echo "* Clean-up old keys trusted for RPM package signing"
+#echo "*****"
+#clean-rpm-gpg-pubkey
 
 echo "*****"
 echo "* Retired packages (cleanup)"
