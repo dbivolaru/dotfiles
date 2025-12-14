@@ -1,5 +1,7 @@
 # Programs for the HP-17bii+ Financial Calculator
 
+This is meant as an archive for the programs I use and is not meant as a comprehensive list of programs.
+
 ## TVM Loan Calculator with ACT/360 ACT/365 support
 
 This is a typical TVM loan calculator with typical parameters, but has two additional ones related to the ACT/360 and ACT/365 modes (`SD` and `D/YR`).
@@ -108,3 +110,43 @@ R=INV(SQRT(2xPIxEXP(SQ(X))+L(M:1)x0))x
     X^KxINV(L(M:G(M)xK))
 )
 ```
+
+## Options on Futures calculator
+
+This is an options on futures calculator - do not use for stocks.
+
+- `K` strike price
+- `F` futures price
+- `DTE` days to expiration on a 365 basis
+- `R%` risk-free interest rate
+- `IV%` implied volatility
+- `V` value of the option price
+- `DELTA` delta of the option price (output only - use `RCL`)
+- `MODE` for a call option (`0`) or for a put option (`1` or any other non-zero value)
+
+Validated against the CME Futures Options Calculator.
+
+```
+FUT.OPT:0*L(A:-LN(K/F))*L(DF:EXP(-DTE*R%/36500))*L(B:IV%*SQRT(DTE/365)/100)
+*L(D1:G(A)/G(B)+G(B)/2)*L(D2:G(A)/G(B)-G(B)/2)
+*L(ND1:ABS(IF(G(D1)<0:0:-1)+SIGMA(I:1:5:1:ITEM(NORM:I)*SPPV(23.1641888*ABS(G(D1)):I))/EXP(G(D1)^2/2)))
+*L(ND2:ABS(IF(G(D2)<0:0:-1)+SIGMA(I:1:5:1:ITEM(NORM:I)*SPPV(23.1641888*ABS(G(D2)):I))/EXP(G(D2)^2/2)))
+*L(C:G(DF)*(F*G(ND1)-K*G(ND2)))
+V-G(C)+IF(G(MODE)=0:0:G(DF)*(F-K)
++0*L(DELTA:G(DF)*(G(ND1)+IF(G(MODE)=0:0:-1)))
+*DELTA*MODE
+```
+
+The equation requires a named SUM-list called `NORM` to be added to the calculator:
+```
+1      0.127414796
+2     -0.142248368
+3      0.710706871
+4     -0.726576013
+5      0.530702714
+       -----------
+Total  0.500000000
+```
+
+The algorithm used for the normal distribution cdf is from Handbook of Mathematical Functions, Abramowitz-Stegun et al 26.2.17 and has an approximation error of O(-7). Also, credits go to Tony Hutchins / MoHC for the original implementation of the stocks version.
+
