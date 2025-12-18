@@ -81,34 +81,11 @@ This can provide initial values for the solver to reduce the calculation time si
 The three normal distribution functions usually found on calculators:
 
 - `P(x) = CDF(x)     = Prob.(-inf < X <=    x)`
-- `Q(x) = 1-CDF(x)   = Prob.(   x < X <= +inf)`
-- `R(x) = CDF(x)-1/2 = Prob.(   0 < X <=    x)`
+- `Q(x) = CDF(x)-0.5 = Prob.(   0 < X <= x)`
+- `R(x) = 1-CDF(x)   = Prob.(   x < X <= +inf)`
 
 ```
-NORM:
-P=0.5+INV(SQRT(2xPIxEXP(SQ(X))+L(M:1)x0))x
-Σ(
-    K:1:69:2:
-    X^KxINV(L(M:G(M)xK))
-)
-```
-
-```
-NORM:
-Q=0.5-INV(SQRT(2xPIxEXP(SQ(X))+L(M:1)x0))x
-Σ(
-    K:1:69:2:
-    X^KxINV(L(M:G(M)xK))
-)
-```
-
-```
-NORM:
-R=INV(SQRT(2xPIxEXP(SQ(X))+L(M:1)x0))x
-Σ(
-    K:1:69:2:
-    X^KxINV(L(M:G(M)xK))
-)
+NORM:SIGMA(I:1:5:1:ITEM(NORM:I)*SPPV(23.1641888*ABS(X):I))/EXP(X^2/2))+IF(S(P):P-1:0)+IF(S(Q):Q-0.5:0)+IF(S(R):-R:0)
 ```
 
 ## Options on Futures calculator
