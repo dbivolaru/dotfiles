@@ -108,10 +108,14 @@ FUT.OPT:0*L(A:-LN(K/F))*L(DF:EXP(-DTE*R%/36500))*L(B:IV%*SQRT(DTE/365)/100)
 *L(D1:G(A)/G(B)+G(B)/2)*L(D2:G(A)/G(B)-G(B)/2)
 *L(ND1:ABS(IF(G(D1)<0:0:-1)+SIGMA(I:1:5:1:ITEM(NORM:I)*SPPV(23.1641888*ABS(G(D1)):I))/EXP(G(D1)^2/2)))
 *L(ND2:ABS(IF(G(D2)<0:0:-1)+SIGMA(I:1:5:1:ITEM(NORM:I)*SPPV(23.1641888*ABS(G(D2)):I))/EXP(G(D2)^2/2)))
+*L(PD1:INV(SQRT(2*PI*EXP(G(D1)^2))))
 *L(C:G(DF)*(F*G(ND1)-K*G(ND2)))
-V-G(C)+IF(G(MODE)=0:0:G(DF)*(F-K)
-+0*L(DELTA:G(DF)*(G(ND1)+IF(G(MODE)=0:0:-1)))
-*DELTA*MODE
+*L(DELTA:G(DF)*(G(ND1)+IF(G(MODE)=0:0:-1)))
+*L(GAMA:G(DF)*G(PD1)/(G(B)*F))
+*L(VEGA:F*SQRT(DTE/365)*G(PD1)/100)
+*L(THETA:(-F*G(PD1)*IV%/200/SQRT(DTE/365)-G(DF)*G(K)*G(R%)/100*(G(ND2)+IF(G(MODE)=0:0:-1)))/365)
++V-G(C)+IF(G(MODE)=0:0:G(DF)*(F-K))
++0*DELTA*GAMA*VEGA*THETA*MODE
 ```
 
 The equation requires a named SUM-list called `NORM` to be added to the calculator:
