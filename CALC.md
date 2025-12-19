@@ -131,3 +131,29 @@ Total  0.500000000
 
 The algorithm used for the normal distribution cdf is from Handbook of Mathematical Functions, Abramowitz-Stegun et al 26.2.17 and has an approximation error of O(-7). Also, credits go to Tony Hutchins / MoHC for the original implementation of the stocks version.
 
+## Options on Futures calculator
+
+We also give the Bachelier version for use with spreads or when the underlying is negative/close to zero in super-contango.
+The inputs & outputs are identical to the previous calculator.
+
+For this, mainly I want to highlight the following differences compared to the normal Bachelier model:
+- `IV%` is the usual percentage returns vola; it's used to calculate the Bachelier implied volatility internally by `xF`; not super exact but it works well in practice as drop-in replacement
+- `VEGA` has similar units as the previous calculator
+
+
+Validated against the CME Futures Options Calculator.
+
+```
+FUT.OPT.B:0*L(A:-K+F)*L(DF:EXP(-DTE*R%/36500))*L(B:IV%*F*SQRT(DTE/365)/100)
+*L(D1:G(A)/G(B))
+*L(ND1:ABS(IF(G(D1)<0:0:-1)+SIGMA(I:1:5:1:ITEM(NORM:I)*SPPV(23.1641888*ABS(G(D1)):I))/EXP(G(D1)^2/2)))
+*L(PD1:INV(SQRT(2*PI*EXP(G(D1)^2))))
+*L(C:G(DF)*(G(A)*G(ND1)+G(B)*G(PD1)))
+*L(DELTA:G(DF)*(G(ND1)+IF(G(MODE)=0:0:-1)))
+*L(GAMA:G(DF)*G(PD1)/G(B))
+*L(VEGA:G(DF)*F*SQRT(DTE/365)*G(PD1)/100)
+*L(THETA:-G(DF)*G(B)*G(PD1)/2/DTE-G(R%)/100*G(V)/365)
++V-G(C)+IF(G(MODE)=0:0:G(DF)*G(A))
++0*DELTA*GAMA*VEGA*THETA*MODE
+```
+
