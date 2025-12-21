@@ -101,7 +101,7 @@ This is an options on futures calculator - do not use for stocks.
 - `DELTA` delta of the option price (output only - use `RCL`)
 - `MODE` for a call option (`0`) or for a put option (`1` or any other non-zero value)
 
-Validated against the CME Futures Options Calculator.
+Validated against the CME Futures Options Calculator, CME SPAN and Bloomberg OVME L. Note Bloomberg conventions for delta and gamma using %.
 
 ```
 FUT.OPT:0*L(A:-LN(K/F))*L(DF:EXP(-DTE*R%/36500))*L(B:IV%*SQRT(DTE/365)/100)
@@ -131,15 +131,14 @@ Total  0.500000000
 
 The algorithm used for the normal distribution cdf is from Handbook of Mathematical Functions, Abramowitz-Stegun et al 26.2.17 and has an approximation error of O(-7). Also, credits go to Tony Hutchins / MoHC for the original implementation of the stocks version.
 
-## Options on Futures calculator
+## Options on Futures calculator (Bachelier)
 
 We also give the Bachelier version for use with spreads or when the underlying is negative/close to zero in super-contango.
 The inputs & outputs are identical to the previous calculator.
 
-For this, mainly I want to highlight the following differences compared to the normal Bachelier model:
-- `IV%` is the usual percentage returns vola; it's used to calculate the Bachelier implied volatility internally by `xF`; not super exact but it works well in practice as drop-in replacement
-- `VEGA` has similar units as the previous calculator
-
+For this, mainly I want to highlight the following two differences compared to the normal Bachelier model:
+- `IV%` is the usual percentage returns vola; it's used to calculate the Bachelier implied volatility internally by `xF`; not super exact but it works well in practice as drop-in replacement when your broker forgot to read the clearing advisories about negative prices
+- `VEGA` has similar units as the previous calculator (ie Bachelier `xF`) with the intent of being also a drop-in replacement
 
 Validated against the CME Futures Options Calculator.
 
@@ -149,7 +148,7 @@ FUT.OPT.B:0*L(A:-K+F)*L(DF:EXP(-DTE*R%/36500))*L(B:IV%*F*SQRT(DTE/365)/100)
 *L(ND1:ABS(IF(G(D1)<0:0:-1)+SIGMA(I:1:5:1:ITEM(NORM:I)*SPPV(23.1641888*ABS(G(D1)):I))/EXP(G(D1)^2/2)))
 *L(PD1:INV(SQRT(2*PI*EXP(G(D1)^2))))
 *L(C:G(DF)*(G(A)*G(ND1)+G(B)*G(PD1)))
-*L(DELTA:G(DF)*(G(ND1)+IF(G(MODE)=0:0:-1)))
+*L(DELTA:G(DF)*(G(ND1)+IF(G(MODE)=0:0:-1)+IV%*SQRT(DTE/365)/100*G(PD1)))
 *L(GAMA:G(DF)*G(PD1)/G(B))
 *L(VEGA:G(DF)*F*SQRT(DTE/365)*G(PD1)/100)
 *L(THETA:-G(DF)*G(B)*G(PD1)/2/DTE-G(R%)/100*G(V)/365)
@@ -157,3 +156,4 @@ FUT.OPT.B:0*L(A:-K+F)*L(DF:EXP(-DTE*R%/36500))*L(B:IV%*F*SQRT(DTE/365)/100)
 +0*DELTA*GAMA*VEGA*THETA*MODE
 ```
 
+*L(DELTA:G(DF)*(G(ND1)+IF(G(MODE)=0:0:-1)))
