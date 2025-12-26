@@ -98,24 +98,32 @@ This is an options on futures calculator - do not use for stocks.
 - `R%` risk-free interest rate
 - `IV%` implied volatility
 - `V` value of the option price
-- `DELTA` delta of the option price (output only - use `RCL`)
-- `MODE` for a call option (`0`) or for a put option (`1` or any other non-zero value)
+- `DELTA` forward delta (output only - use `RCL`)
+- `GAMA` forward gamma (output only - use `RCL`)
+- `VEGA` option vega (output only - use `RCL`)
+- `THETA` option total time derivative theta (output only - use `RCL`)
+- `CP` call/put ie for a call option (`1`) or for a put option (`-1`)
 
-Validated against the CME Futures Options Calculator, CME SPAN and Bloomberg OVME L. Note Bloomberg conventions for delta and gamma using %.
+Validated against the CME Futures Options Calculator, CME SPAN and Bloomberg OVME L. CME Options Calculator uses finite differnce theta, otherise directly comparable. Note Bloomberg conventions for delta and gamma using % (multiply our output by F/S or e^rt), vega, rho and gamma being the portfolio variety (multiply our output by the contract multiplier and quantity) and theta using finite difference instead of the closed form.
+
+We are using the total time derivative of the option value which should be closer to the finite difference theta than the closed form. However, to obtain the same theta value, one would calculate once the option value, then again with DTE+1 (or DTE+3 if on weekend) and substract the two option values.
+
+In fact, theta total derivative is less than theta finite difference which is less than the theta theoretical closed form.
 
 ```
 FUT.OPT:0*L(A:-LN(K/F))*L(DF:EXP(-DTE*R%/36500))*L(B:IV%*SQRT(DTE/365)/100)
-*L(D1:G(A)/G(B)+G(B)/2)*L(D2:G(A)/G(B)-G(B)/2)
+*L(D1:G(CP)*(G(A)/G(B)+G(B)/2))*L(D2:G(CP)*(G(A)/G(B)-G(B)/2))
 *L(ND1:ABS(IF(G(D1)<0:0:-1)+SIGMA(I:1:5:1:ITEM(NORM:I)*SPPV(23.1641888*ABS(G(D1)):I))/EXP(G(D1)^2/2)))
 *L(ND2:ABS(IF(G(D2)<0:0:-1)+SIGMA(I:1:5:1:ITEM(NORM:I)*SPPV(23.1641888*ABS(G(D2)):I))/EXP(G(D2)^2/2)))
 *L(PD1:INV(SQRT(2*PI*EXP(G(D1)^2))))
-*L(C:G(DF)*(F*G(ND1)-K*G(ND2)))
-*L(DELTA:G(DF)*(G(ND1)+IF(G(MODE)=0:0:-1)))
+*L(PD2:INV(SQRT(2*PI*EXP(G(D2)^2))))
+*L(C:G(CP)*G(DF)*(F*G(ND1)-K*G(ND2)))
+*L(DELTA:G(CP)*G(DF)*G(ND1))
 *L(GAMA:G(DF)*G(PD1)/(G(B)*F))
 *L(VEGA:F*G(DF)*SQRT(DTE/365)*G(PD1)/100)
-*L(THETA:-(G(F)*G(PD1)*IV%/200/SQRT(DTE/365)+G(K)*G(R%)/100*(G(ND2)+IF(G(MODE)=0:0:-1)))*G(DF)/365)
-+V-G(C)+IF(G(MODE)=0:0:G(DF)*(F-K))
-+0*DELTA*GAMA*VEGA*THETA*MODE
+*L(THETA:(G(CP)*(G(F)*G(PD1)*G(D2)-G(K)*G(PD2)*G(D1))/2/G(DTE)+G(K)*G(R%)/36500*G(ND2))*G(DF))
++V-G(C)
++0*DELTA*GAMA*VEGA*THETA*CP
 ```
 
 The equation requires a named SUM-list called `NORM` to be added to the calculator:
@@ -137,23 +145,24 @@ We also give the Bachelier version for use with spreads or when the underlying i
 The inputs & outputs are identical to the previous calculator.
 
 For this, mainly I want to highlight the following two differences compared to the normal Bachelier model:
-- `IV%` is the usual percentage returns vola; it's used to calculate the Bachelier implied volatility internally by `xF`; not super exact but it works well in practice as drop-in replacement when your broker forgot to read the clearing advisories about negative prices
+- `IV%` is the usual percentage returns vola; it's used to calculate the Bachelier implied volatility internally by `xF`; not super exact but it works well in practice ATM as drop-in replacement when your broker forgot to read the clearing advisories about negative prices
 - `VEGA` has similar units as the previous calculator (ie Bachelier `xF`) with the intent of being also a drop-in replacement
+- `THETA` uses total derivative
 
 Validated against the CME Futures Options Calculator.
 
 ```
 FUT.OPT.B:0*L(A:-K+F)*L(DF:EXP(-DTE*R%/36500))*L(B:IV%*F*SQRT(DTE/365)/100)
-*L(D1:G(A)/G(B))
+*L(D1:G(CP)*G(A)/G(B))
 *L(ND1:ABS(IF(G(D1)<0:0:-1)+SIGMA(I:1:5:1:ITEM(NORM:I)*SPPV(23.1641888*ABS(G(D1)):I))/EXP(G(D1)^2/2)))
 *L(PD1:INV(SQRT(2*PI*EXP(G(D1)^2))))
-*L(C:G(DF)*(G(A)*G(ND1)+G(B)*G(PD1)))
-*L(DELTA:G(DF)*(G(ND1)+IF(G(MODE)=0:0:-1)+IV%*SQRT(DTE/365)/100*G(PD1)))
+*L(C:G(DF)*(G(CP)*G(A)*G(ND1)+G(B)*G(PD1)))
+*L(DELTA:G(DF)*(G(CP)*G(ND1)+IV%*SQRT(DTE/365)/100*G(PD1)))
 *L(GAMA:G(DF)*G(PD1)/G(B))
 *L(VEGA:G(DF)*F*SQRT(DTE/365)*G(PD1)/100)
-*L(THETA:-G(DF)*G(B)*G(PD1)/2/DTE-G(R%)/100*G(V)/365)
-+V-G(C)+IF(G(MODE)=0:0:G(DF)*G(A))
-+0*DELTA*GAMA*VEGA*THETA*MODE
+*L(THETA:-G(DF)*(G(D1)*G(A)+(G(D1)^2-1)*G(B))*G(PD1)/2/DTE-G(R%)/100*G(V)/365)
++V-G(C)
++0*DELTA*GAMA*VEGA*THETA*CP
 ```
 
 ## Disclaimer
