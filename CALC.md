@@ -101,14 +101,11 @@ This is an options on futures calculator - do not use for stocks.
 - `DELTA` forward delta (output only - use `RCL`)
 - `GAMA` forward gamma (output only - use `RCL`)
 - `VEGA` option vega (output only - use `RCL`)
-- `THETA` option total time derivative theta (output only - use `RCL`)
+- `THETA` option finite difference theta (output only - use `RCL`)
 - `CP` call/put ie for a call option (`1`) or for a put option (`-1`)
+- `HDAYS` bank holidays - in case we calculate on a Friday, set this to `2` or accordingly for the number of upcoming bank holidays
 
-Validated against the CME Futures Options Calculator, CME SPAN and Bloomberg OVME L. CME Options Calculator uses finite differnce theta, otherise directly comparable. Note Bloomberg conventions for delta and gamma using % (multiply our output by F/S or e^rt), vega, rho and gamma being the portfolio variety (multiply our output by the contract multiplier and quantity) and theta using finite difference instead of the closed form.
-
-We are using the total time derivative of the option value which should be closer to the finite difference theta than the closed form. However, to obtain the same theta value, one would calculate once the option value, then again with DTE+1 (or DTE+3 if on weekend) and substract the two option values.
-
-In fact, theta total derivative is less than theta finite difference which is less than the theta theoretical closed form.
+Validated against the CME Futures Options Calculator, CME SPAN and Bloomberg OVME L. Note Bloomberg conventions for delta and gamma using % (multiply our output by F/S or e^rt), vega, rho and gamma being the portfolio variety (multiply our output by the contract multiplier and quantity) and theta using finite difference instead of the closed form.
 
 ```
 FUT.OPT:0*L(A:-LN(K/F))*L(DF:EXP(-DTE*R%/36500))*L(B:IV%*SQRT(DTE/365)/100)
@@ -116,14 +113,16 @@ FUT.OPT:0*L(A:-LN(K/F))*L(DF:EXP(-DTE*R%/36500))*L(B:IV%*SQRT(DTE/365)/100)
 *L(ND1:ABS(IF(G(D1)<0:0:-1)+SIGMA(I:1:5:1:ITEM(NORM:I)*SPPV(23.1641888*ABS(G(D1)):I))/EXP(G(D1)^2/2)))
 *L(ND2:ABS(IF(G(D2)<0:0:-1)+SIGMA(I:1:5:1:ITEM(NORM:I)*SPPV(23.1641888*ABS(G(D2)):I))/EXP(G(D2)^2/2)))
 *L(PD1:INV(SQRT(2*PI*EXP(G(D1)^2))))
-*L(PD2:INV(SQRT(2*PI*EXP(G(D2)^2))))
-*L(C:G(CP)*G(DF)*(F*G(ND1)-K*G(ND2)))
-*L(DELTA:G(CP)*G(DF)*G(ND1))
+-V+G(CP)*G(DF)*(F*G(ND1)-K*G(ND2))
++0*L(DELTA:G(CP)*G(DF)*G(ND1))
 *L(GAMA:G(DF)*G(PD1)/(G(B)*F))
 *L(VEGA:F*G(DF)*SQRT(DTE/365)*G(PD1)/100)
-*L(THETA:(G(CP)*(G(F)*G(PD1)*G(D2)-G(K)*G(PD2)*G(D1))/2/G(DTE)+G(K)*G(R%)/36500*G(ND2))*G(DF))
-+V-G(C)
-+0*DELTA*GAMA*VEGA*THETA*CP
+*L(B1:G(IV%)*SQRT(MAX(1/365/24:G(DTE)-G(HDAYS)-1)/365)/100)
+*L(D11:G(CP)*(G(A)/G(B1)+G(B1)/2))*L(D21:G(CP)*(G(A)/G(B1)-G(B1)/2))
+*L(ND11:ABS(IF(G(D11)<0:0:-1)+SIGMA(I:1:5:1:ITEM(NORM:I)*SPPV(23.1641888*ABS(G(D11)):I))/EXP(G(D11)^2/2)))
+*L(ND21:ABS(IF(G(D21)<0:0:-1)+SIGMA(I:1:5:1:ITEM(NORM:I)*SPPV(23.1641888*ABS(G(D21)):I))/EXP(G(D21)^2/2)))
+*L(THETA:-G(V)+G(CP)*G(DF)*(G(F)*G(ND11)-G(K)*G(ND21)))
++0*DELTA*GAMA*VEGA*THETA*CP*HDAYS
 ```
 
 The equation requires a named SUM-list called `NORM` to be added to the calculator:
