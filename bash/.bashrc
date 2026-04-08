@@ -456,6 +456,8 @@ if [[ -n "${ZSH_VERSION-}" ]]; then
 	zstyle :zle:shell-kill-word word-style shell
 	zle -N shell-backward-kill-word backward-kill-word-match
 	zstyle :zle:shell-backward-kill-word word-style shell
+	zle -N unix-word-rubout backward-kill-word-match
+	zstyle :zle:unix-word-rubout word-style whitespace
 	zle -N shell-forward-word forward-word-match
 	zstyle :zle:shell-forward-word word-style shell
 	zle -N shell-backward-word backward-word-match
@@ -581,9 +583,16 @@ if [[ -n "${ZSH_VERSION-}" ]]; then
 	bindkey "\ef" shell-forward-word
 
 	# Kill Ring
+	## C-w kills to whitespace
+	bindkey "\C-w" unix-word-rubout
+
 	## M-d and M-Rubout kills to whitespace instead of /
 	bindkey "\ed" shell-kill-word
+	bindkey "\eD" shell-kill-word
+	bindkey "\M-d" shell-kill-word
+	bindkey "\M-D" shell-kill-word
 	bindkey "\e\C-?" shell-backward-kill-word
+	bindkey "\M-^?" shell-backward-kill-word
 
 	## Ctrl-Delete has legacy functionality
 	bindkey "\e[3;5~" kill-word
@@ -594,9 +603,13 @@ if [[ -n "${ZSH_VERSION-}" ]]; then
 	# Transpose
 	## M-t transposes unix bounded words instead of /
 	bindkey "\et" shell-transpose-words
+	bindkey "\eT" shell-transpose-words
+	bindkey "\M-t" shell-transpose-words
+	bindkey "\M-T" shell-transpose-words
 
 	## C-x t has legacy functionality
 	bindkey "\C-xt" transpose-words
+	bindkey "\C-xT" transpose-words
 
 	# Quoting
 	## M-' quotes text; use marks to prevent issues with existing quotes
@@ -608,6 +621,19 @@ if [[ -n "${ZSH_VERSION-}" ]]; then
 	# History
 	## M-s does forward search as default C-s is used for flow control
 	bindkey "\es" history-incremental-search-forward
+
+	# Some missing shortcuts
+	delete-horizontal-space() {
+		emulate -L zsh
+		set -o extendedglob
+		LBUFFER=${LBUFFER%%[[:blank:]]##}
+		RBUFFER=${RBUFFER##[[:blank:]]##}
+	}
+	zle -N delete-horizontal-space
+
+	## M-\ deletes horizontal space
+	bindkey "\e\\" delete-horizontal-space
+	bindkey "\M-\\" delete-horizontal-space
 fi
 
 if [[ $_BENCHMARK -ne 0 ]]; then
