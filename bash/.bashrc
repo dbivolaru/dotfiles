@@ -596,6 +596,7 @@ if [[ -n "${ZSH_VERSION-}" ]]; then
 
 	## Ctrl-Delete has legacy functionality
 	bindkey "\e[3;5~" kill-word
+	bindkey "\M-[3;5~" kill-word
 
 	## M-C-h has legacy functionality
 	bindkey "\e\C-h" backward-kill-word
