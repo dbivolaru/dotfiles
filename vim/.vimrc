@@ -279,6 +279,12 @@ function! SudoSave()
 endfunction
 cnoremap w!! call SudoSave()
 
+" Workaround for <CR> being swalloed in Vim9 on a :ls<CR>:b typical approach
+function! ListBuffers()
+  ls
+  call feedkeys(':b ', 't')
+endfunction
+
 " Setup shortcuts at VimEnter
 function! AddOtherShortcuts()
   " Movement on big linebreak'ed lines; conisder autocompletion handling
@@ -377,7 +383,7 @@ function! AddOtherShortcuts()
   nnoremap <Leader>q :call setqflist(filter(getqflist(), "bufname(v:val['bufnr']) =~# ''"))<Left><Left><Left><Left>
 
   " Buffer show
-  nnoremap <Leader>b :ls<CR>:b<Space>
+  nnoremap <Leader>b <Cmd>call ListBuffers()<CR>
 
   " Execute bash command and paste back in current buffer
   nnoremap <Leader>r :silent execute ':read !' . getline('.')<CR>
