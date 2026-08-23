@@ -50,7 +50,7 @@ Plugin 'Yggdroot/indentLine'
 
 " Session management
 Plugin 'xolox/vim-misc'
-Plugin 'xolox/vim-session'
+Plugin 'dbivolaru/vim-session'
 Plugin 'mhinz/vim-startify'
 
 " Language support
@@ -531,7 +531,7 @@ augroup DontCreateSessionsRandomly
   au VimLeavePre * if empty(xolox#session#find_current_session()) | let g:session_autosave='no' | endif
 augroup END
 
-let g:session_default_name='session'
+let g:session_default_name='.session'
 let g:session_extension = '.vim'
 let g:session_default_overwrite=0
 let g:session_autoload='yes'

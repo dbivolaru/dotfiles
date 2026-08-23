@@ -5,5 +5,5 @@
 
 tags
 *.tags
-session.vim
-session.vim.lock
+.session.vim
+.session.vim.lock
