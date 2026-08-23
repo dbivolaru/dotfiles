@@ -99,9 +99,9 @@ else
 	fi
 fi
 
-if [[ -f /usr/share/vim/vim91/defaults.vim ]]; then
+if [[ -f /usr/share/vim/vim92/defaults.vim ]]; then
 	# Fast guess
-	export VIMRUNTIME="/usr/share/vim/vim91"
+	export VIMRUNTIME="/usr/share/vim/vim92"
 else
 	# This is very slow
 	VIMRUNTIME="$($EDITOR --version | awk ' /fall-back/ { gsub(/["]/,"",$NF); print $NF }')"
