@@ -27,6 +27,7 @@ set rtp+=~/.vim/bundle/Vundle.vim
 call vundle#begin()
 
 Plugin 'VundleVim/Vundle.vim'
+Plugin 'dstein64/vim-startuptime'
 
 " Support for G commands and []/gc keybinds
 Plugin 'tpope/vim-fugitive'
@@ -224,6 +225,7 @@ let g:airline#extensions#tagbar#enabled=1
 au User AirlineAfterInit let g:airline_section_x=g:airline#section#create_right(['filetype'])
 au User AirlineAfterInit let g:airline_section_y=g:airline#section#create_right(['bookmark', 'tagbar', 'vista', 'gutentags', 'gen_tags', 'omnisharp', 'grepper'])
 au User AirlineAfterInit let g:airline_section_z=g:airline#section#create(['linenr', 'maxlinenr', ':%v'])
+au User AirlineAfterInit let g:airline_symbols.executable=''
 let g:airline_skip_empty_sections=1
 let g:airline_mode_map = {
       \ '__'     : '-',
@@ -395,7 +397,7 @@ function! AddOtherShortcuts()
   nmap <silent> ]l :<C-U>exe (v:count ? v:count : "")."Lnext"<CR>zv
 
   " Save anywhere
-  silent !stty -ixon
+  " silent !stty -ixon
   inoremap <silent> <C-s> <C-\><C-o>:update<CR>
   nnoremap <silent> <C-s> :update<CR>
 
@@ -439,9 +441,9 @@ function! AddOtherShortcuts()
                 \ let b:xxd_mode = 0<BAR>file<BAR>
                 \ else<BAR>echo "Not in hex mode!"<BAR>endif<CR>
 
-  call airline#extensions#tabline#buffers#invalidate()
-  AirlineRefresh
-  redraw!
+  " call airline#extensions#tabline#buffers#invalidate()
+  " AirlineRefresh
+  " redraw!
 endfunction
 
 augroup OtherShortcuts
@@ -657,6 +659,12 @@ elseif &term == 'xterm-kitty'
   let &t_ti = &t_ti . "\033]10;#f8f8f2\007\033]11;#272822\007"
   let &t_te = &t_te . "\033]110\007\033]111\007"
   let &t_RV = ""
+
+  " Prevent bleeding escape codes on startup
+  let &t_u7 = ""
+  let &t_RF = ""
+  let &t_RB = ""
+  set background=dark
 
   " Disable kitty keyboard protocol as we use legacy VT mode
   " Also, we disable xterm:mok2 mode
